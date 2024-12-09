@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Parameter Input</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .problems-container {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px;
+            white-space: nowrap;
+            height: auto;
+            box-sizing: border-box;
+        }
+
+        .problem-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .add-btn {
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .problem-container {
+            display: inline-block;
+            width: 300px;
+            min-width: 280px;
+            max-width: 100%;
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            vertical-align: top;
+        }
+
+        label, select, input {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 1200px) {
+            .problem-container {
+                width: 250px;
+                min-width: 230px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .problem-container {
+                width: 200px;
+                min-width: 180px;
+            }
+
+            .remove-btn {
+                padding: 3px;
+                font-size: 12px;
+            }
+
+            .add-btn {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .problem-container {
+                width: 100%;
+                min-width: 100%;
+            }
+
+            .problems-container {
+                flex-direction: column;
+                overflow-x: hidden;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .add-btn {
+                width: 100%;
+            }
+        }
+
+    </style>
+    <script>
+        // TODO: Do not hardcode problem names
+        function addProblem() {
+            const container = document.getElementById("problems");
+            const problemCount = document.querySelectorAll(".problem-container").length + 1;
+            const template = `
+                <div class="problem-container" id="problem-${problemCount}">
+                    <div class="problem-header">
+                        <h3>Problem ${problemCount}</h3>
+                        <button type="button" class="remove-btn" onclick="removeProblem(${problemCount})">Remove</button>
+                    </div>
+                    <label for="problem-name-${problemCount}">Select Problem:</label>
+                    <select id="problem-name-${problemCount}" name="problem-name-${problemCount}">
+                        <option value="beale">beale</option>
+                        <option value="bent_cigar">bent_cigar</option>
+                        <option value="bohachevsky">bohachevsky</option>
+                    </select><br>
+
+                    <label for="dimensions-${problemCount}">Dimensions:</label>
+                    <input type="text" id="dimensions-${problemCount}" name="dimensions-${problemCount}" value="2 5 10"><br>
+
+                    <label for="initial_samples-${problemCount}">Initial Samples:</label>
+                    <input type="text" id="initial_samples-${problemCount}" name="initial_samples-${problemCount}" value="10 20"><br>
+
+                    <label for="restarts-${problemCount}">Restarts:</label>
+                    <input type="text" id="restarts-${problemCount}" name="restarts-${problemCount}" value="5 10"><br>
+
+                    <label for="seeds-${problemCount}">Seeds:</label>
+                    <input type="text" id="seeds-${problemCount}" name="seeds-${problemCount}" value="15"><br>
+
+                    <label for="metrics-${problemCount}">Metrics:</label>
+                    <input type="checkbox" name="metrics-${problemCount}" value="NONE" checked> NONE
+                    <input type="checkbox" name="metrics-${problemCount}" value="R2_CV" checked> R2_CV
+                    <input type="checkbox" name="metrics-${problemCount}" value="SUIT_EXT" checked> SUIT_EXT
+                    <input type="checkbox" name="metrics-${problemCount}" value="VM_ANGLES_EXT" checked> VM_ANGLES_EXT
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', template);
+        }
+
+        function removeProblem(id) {
+            const problem = document.getElementById(`problem-${id}`);
+            problem.remove();
+        }
+        
+        window.addEventListener('load', addProblem);
+
+        function submitForm() {
+        const form = document.getElementById("problemsForm");
+        const formData = new FormData(form);
+        const problems = [];
+
+        const problemContainers = document.querySelectorAll(".problem-container");
+        problemContainers.forEach((container, index) => {
+            const problemId = index + 1;
+            const problem = {
+                name: formData.get(`problem-name-${problemId}`),
+                dimensions: formData.get(`dimensions-${problemId}`)?.split(" ").map(Number),
+                initial_samples: formData.get(`initial_samples-${problemId}`)?.split(" ").map(Number),
+                restarts: formData.get(`restarts-${problemId}`)?.split(" ").map(Number),
+                seeds: parseInt(formData.get(`seeds-${problemId}`), 10),
+                metrics: formData.getAll(`metrics-${problemId}`)
+            };
+            problems.push(problem);
+        });
+
+        fetch("/submit", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ problems })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("Success:", data);
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }
+    </script>
+</head>
+<body>
+    <h1>Enter Parameters for Problems</h1>
+    <form id="problemsForm">
+        <div class="problems-container" id="problems"></div>
+        <button type="button" class="add-btn" onclick="addProblem()">Add Problem</button><br><br>
+        <button type="button" onclick="submitForm()">Send</button>
+    </form>
+</body>
+</html>
