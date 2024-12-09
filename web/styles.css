@@ -1,0 +1,532 @@
+/* styles.css */
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ecf0f1;
+    color: #333;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    overflow: hidden; /* Prevent body scroll */
+}
+
+h1 {
+    margin-bottom: 10px;
+    font-size: 2rem;
+    color: #2c3e50;
+    text-align: center;
+}
+
+/* Form Styles */
+form#problemsForm {
+    width: 100%;
+    max-width: 1200px;
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    height: 90vh; /* Ensure the form fits within the viewport */
+    overflow: hidden; /* Prevent form scroll */
+}
+
+/* Problems Container */
+.problems-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    max-height: 100%;
+    flex-grow: 1;
+    scroll-behavior: smooth; /* Smooth scrolling */
+}
+
+/* Scrollbar Styling */
+.problems-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.problems-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.problems-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+/* Problem Container */
+.problem-container {
+    flex: 0 0 auto;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+/* Hover Effect */
+.problem-container:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Problem Header */
+.problem-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.problem-header h3 {
+    font-size: 1.1rem;
+    color: #34495e;
+}
+
+.problem-header .remove-btn {
+    background-color: var(--danger-color);
+    color: #ffffff;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background-color 0.2s ease;
+}
+
+.problem-header .remove-btn:hover {
+    background-color: #c0392b; /* Darker shade without opacity change */
+}
+
+/* Form Elements */
+label {
+    display: block;
+    margin-top: 6px;
+    margin-bottom: 3px;
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 0.85rem;
+}
+
+input[type="text"],
+select {
+    width: 100%;
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 3px rgba(52, 152, 219, 0.5);
+    outline: none;
+}
+
+/* Metrics Section */
+.metrics-container {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+}
+
+.metrics-container .metric-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.metrics-container .metric-item input {
+    margin-right: 6px;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.metrics-container .metric-item input:hover {
+    transform: scale(1.1);
+}
+
+.metrics-container .metric-item label {
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+/* Run Settings */
+.run-settings {
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.run-settings label {
+    margin-top: 6px;
+    font-size: 0.85rem;
+}
+
+.run-settings input[type="text"] {
+    width: 100%;
+    padding: 6px 8px;
+    margin-top: 3px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.run-settings input[type="text"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 3px rgba(52, 152, 219, 0.5);
+    outline: none;
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* Buttons */
+.add-btn,
+.send-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.add-btn {
+    background-color: var(--secondary-color);
+    color: #ffffff;
+}
+
+.add-btn:hover {
+    background-color: #27ae60;
+    transform: scale(1.02);
+}
+
+.send-btn {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.send-btn:hover {
+    background-color: #2980b9;
+    transform: scale(1.02);
+}
+
+/* Button Icons */
+button.add-btn::before {
+    content: '➕';
+    margin-right: 6px;
+    font-size: 0.9rem;
+}
+
+button.send-btn::before {
+    content: '📤';
+    margin-right: 6px;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .problem-container {
+        flex: 0 0 260px;
+    }
+}
+
+@media (max-width: 992px) {
+    .problem-container {
+        flex: 0 0 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    form#problemsForm {
+        padding: 15px;
+        height: 100vh;
+    }
+
+    .problems-container {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .problem-container {
+        flex: 0 0 220px;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    body {
+        padding: 5px;
+    }
+
+    form#problemsForm {
+        padding: 10px;
+    }
+
+    .problem-container {
+        flex: 0 0 100%;
+    }
+
+    .button-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .add-btn,
+    .send-btn {
+        width: 100%;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Typography */
+h1 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.problem-header h3 {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: var(--header-color);
+    letter-spacing: 0.3px;
+}
+
+label {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+}
+
+input[type="text"],
+select,
+button {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+}
+
+/* Colors and Themes */
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --background-color: #ecf0f1;
+    --container-bg: #ffffff;
+    --text-color: #333333;
+    --header-color: #2c3e50;
+    --border-color: #e0e0e0;
+    --input-border: #bdc3c7;
+    --input-focus-border: #3498db;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+form#problemsForm {
+    background-color: var(--container-bg);
+    border: 1px solid var(--border-color);
+}
+
+h1 {
+    color: var(--header-color);
+}
+
+.problem-container {
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+}
+
+.problem-header .remove-btn {
+    background-color: var(--danger-color);
+}
+
+.problem-header .remove-btn:hover {
+    background-color: #c0392b; /* Darker shade without opacity change */
+}
+
+input[type="text"],
+select {
+    border-color: var(--input-border);
+}
+
+input[type="text"]:focus,
+select:focus {
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Utility Classes */
+.text-center {
+    text-align: center;
+}
+
+.margin-bottom-10 {
+    margin-bottom: 10px;
+}
+
+.padding-10 {
+    padding: 10px;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Enhanced Forms */
+input[type="text"]::placeholder {
+    color: #a0a0a0;
+    font-style: italic;
+}
+
+select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="10" height="6"%3E%3Cpath fill="%23343950" d="M0 0l5 6 5-6z"/%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 10px 6px;
+    padding-right: 20px;
+    cursor: pointer;
+}
+
+select:focus {
+    outline: none;
+}
+
+/* Checkbox Styling */
+input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+    margin-right: 6px;
+    transition: transform 0.2s ease;
+}
+
+input[type="checkbox"]:hover {
+    transform: scale(1.1);
+}
+
+/* Button Transitions */
+button {
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+button:focus {
+    outline: none;
+    box-shadow: 0 0 3px rgba(52, 152, 219, 0.5);
+}
+
+/* Disabled State */
+button:disabled,
+button[disabled] {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Active State */
+button:active {
+    transform: scale(0.98);
+}
+
+/* Font Weight */
+.problem-container label {
+    font-weight: 600;
+}
+
+button.add-btn,
+button.send-btn {
+    font-weight: 600;
+}
+
+/* Additional Layout Adjustments */
+.problems-container {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.problem-container {
+    margin-bottom: 10px;
+}
+
+button.add-btn,
+button.send-btn,
+button.remove-btn {
+    font-size: 0.9rem;
+}
+
+/* Final Layout Adjustments */
+body {
+    background-color: #ecf0f1;
+}
+
+form#problemsForm {
+    background-color: #ffffff;
+}
+
+/* End of styles.css */
