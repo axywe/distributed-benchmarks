@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 from typing import Dict, List
+import os
+from sqlalchemy import create_engine
 
 import joblib
 import numpy as np
@@ -15,6 +17,16 @@ from boela.optimizer import solve_problem
 from boela.predictor import build_predictor, load_predictor
 from boela.problems.problem import ProblemBase
 from boela.timer import timers
+
+POSTGRES_USER = os.getenv("POSTGRES_USER", "boela_user")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "boela_password")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "boela_db")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
+
+engine = create_engine(
+    f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+)
 
 LOG = set_logger("bench_run")
 DATA_FOLDER = "app/data"
@@ -71,7 +83,13 @@ for dim in dimensions:
                             metric=metric,
                             predictor=None,
                         )
-                        data.to_csv(data_file)
+                        data.to_sql(
+                            name="optimization_results",
+                            con=engine,
+                            if_exists="append",
+                            index=False
+                        )
+
                     metrics_by_problem.setdefault(problem.id, {})
                     metrics_by_problem[problem.id][metric] = data["f_best"].mean()
 
@@ -81,6 +99,7 @@ with (models_folder / "metrics.json").open("w") as fi:
 LOG.info(f"Stage 1 {timer.stop().str()}\n{json.dumps(timers.str(), indent=2)}\n")
 ########################################################################################
 
+exit(0)
 
 timer = timers.start("Explore sample features")
 metrics_data: Dict[METRICS, List[pd.DataFrame]] = {}

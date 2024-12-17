@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Parameter Input</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <script>
+        // TODO: Do not hardcode problem names
+        function addProblem() {
+            const container = document.getElementById("problems");
+            const problemCount = document.querySelectorAll(".problem-container").length + 1;
+            const template = `
+                <div class="problem-container" id="problem-${problemCount}">
+                    <div class="problem-header">
+                        <h3>Problem ${problemCount}</h3>
+                        <button type="button" class="remove-btn" onclick="removeProblem(${problemCount})">Remove</button>
+                    </div>
+
+                    <!-- Problem Selector -->
+                    <label for="problem-name-${problemCount}">Select Problem:</label>
+                    <select id="problem-name-${problemCount}" name="problem-name-${problemCount}">
+                        <option value="attractive_sector">attractive_sector</option>
+                        <option value="bent_cigar">bent_cigar</option>
+                        <option value="bueche_rastrigin">bueche_rastrigin</option>
+                        <option value="different_powers">different_powers</option>
+                        <option value="discus">discus</option>
+                        <option value="ellipsoid">ellipsoid</option>
+                        <option value="ellipsoid_rotated">ellipsoid_rotated</option>
+                        <option value="gallagher101">gallagher101</option>
+                        <option value="gallagher21">gallagher21</option>
+                        <option value="griewank_rosenbrock">griewank_rosenbrock</option>
+                        <option value="katsuura">katsuura</option>
+                        <option value="linear_slope">linear_slope</option>
+                        <option value="lunacek_bi_rastrigin">lunacek_bi_rastrigin</option>
+                        <option value="rastrigin">rastrigin</option>
+                        <option value="rastrigin_rotated">rastrigin_rotated</option>
+                        <option value="rosenbrock">rosenbrock</option>
+                        <option value="rosenbrock_rotated">rosenbrock_rotated</option>
+                        <option value="schaffers10">schaffers10</option>
+                        <option value="schaffers1000">schaffers1000</option>
+                        <option value="schwefel">schwefel</option>
+                        <option value="sharp_ridge">sharp_ridge</option>
+                        <option value="sphere">sphere</option>
+                        <option value="step_ellipsoid">step_ellipsoid</option>
+                        <option value="weierstrass">weierstrass</option>
+                    </select>
+
+                    <!-- Dimensions -->
+                    <label for="dimensions-${problemCount}">Dimensions:</label>
+                    <input type="text" id="dimensions-${problemCount}" name="dimensions-${problemCount}" value="2 4 8">
+
+                    <!-- Instances -->
+                    <label for="instances-${problemCount}">Instances:</label>
+                    <input type="text" id="instances-${problemCount}" name="instances-${problemCount}" value="0 10 100">
+
+                    <!-- Metrics -->
+                    <label for="metrics-${problemCount}">Metrics:</label>
+                    <input type="checkbox" name="metrics-${problemCount}" value="NONE" checked> NONE
+                    <input type="checkbox" name="metrics-${problemCount}" value="R2_CV" checked> R2_CV
+                    <input type="checkbox" name="metrics-${problemCount}" value="SUIT_EXT" checked> SUIT_EXT
+                    <input type="checkbox" name="metrics-${problemCount}" value="VM_ANGLES_EXT" checked> VM_ANGLES_EXT
+                    <input type="checkbox" name="metrics-${problemCount}" value="SEGMENT_EXT"> SEGMENT_EXT
+
+                    <!-- Run Settings -->
+                    <label for="n_inits-${problemCount}">Initial Samples:</label>
+                    <input type="text" id="n_inits-${problemCount}" name="n_inits-${problemCount}" value="10 20">
+
+                    <label for="n_iters-${problemCount}">Iterations:</label>
+                    <input type="text" id="n_iters-${problemCount}" name="n_iters-${problemCount}" value="5 15">
+
+                    <label for="n_restarts-${problemCount}">Restarts:</label>
+                    <input type="text" id="n_restarts-${problemCount}" name="n_restarts-${problemCount}" value="3 10">
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', template);
+        }
+
+        function removeProblem(id) {
+            const problem = document.getElementById(`problem-${id}`);
+            problem.remove();
+        }
+
+        window.addEventListener('load', addProblem);
+
+        function submitForm() {
+            const problems = [];
+            const problemContainers = document.querySelectorAll(".problem-container");
+
+            problemContainers.forEach((container, index) => {
+                const problemId = index + 1;
+                const problem = {
+                    name: document.querySelector(`#problem-name-${problemId}`).value,
+                    dimensions: document.querySelector(`#dimensions-${problemId}`).value.split(" ").map(Number),
+                    instances: document.querySelector(`#instances-${problemId}`).value.split(" ").map(Number),
+                    metrics: Array.from(document.querySelectorAll(`#problem-${problemId} input[name="metrics-${problemId}"]:checked`))
+                        .map(metric => metric.value),
+                    initial_samples: document.querySelector(`#n_inits-${problemId}`).value.split(" ").map(Number),
+                    iterations: document.querySelector(`#n_iters-${problemId}`).value.split(" ").map(Number),
+                    restarts: document.querySelector(`#n_restarts-${problemId}`).value.split(" ").map(Number)
+                };
+                problems.push(problem);
+            });
+
+            fetch("/submit", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ problems })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Success:", data);
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+        }
+
+    </script>
+</head>
+
+<body>
+    <h1>Enter Parameters for Problems</h1>
+    <form id="problemsForm">
+        <div class="problems-container" id="problems"></div>
+        <div class="button-container">
+            <button type="button" class="add-btn" onclick="addProblem()">Add Problem</button>
+            <button type="button" class="send-btn" onclick="submitForm()">Send</button>
+        </div>        
+    </form>
+</body>
+
+</html>
