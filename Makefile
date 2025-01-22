@@ -8,6 +8,7 @@ ENV = .env
 DB_IMAGE = boela-postgres
 DB_CONTAINER = boela-db
 DB_DIR = database
+HOST_RESULTS_DIR = results
 DB_DOCKERFILE = $(DB_DIR)/Dockerfile
 
 build:
@@ -21,7 +22,7 @@ docker:
 	UNIQUE_TAG=$(shell date +%s%N) && \
 	CONTAINER_NAME=$(CONTAINER_NAME_PREFIX)-$$UNIQUE_TAG && \
 	docker build --build-arg ARGS="$(ARGS)" -f $(BENCH_DIR)/Dockerfile -t $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG . && \
-	docker run -d --name $$CONTAINER_NAME $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG && \
+	docker run -d --name $$CONTAINER_NAME -v $(shell pwd)/$(HOST_RESULTS_DIR)/$$UNIQUE_TAG:/results $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG && \
 	echo "Container $$CONTAINER_NAME started."
 
 db-up:
