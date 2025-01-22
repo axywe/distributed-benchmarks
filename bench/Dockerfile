@@ -4,12 +4,10 @@ WORKDIR /app
 
 COPY bench/ /app/
 
-COPY .env /app/
-
-RUN pip install sqlalchemy psycopg2-binary
+RUN pip install sqlalchemy psycopg2-binary tabulate pandas openpyxl
 
 ARG ARGS
 
 ENV CMD_ARGS=$ARGS
 
-CMD ["sh", "-c", "python /app/run.py $CMD_ARGS"]
+CMD ["sh", "-c", "python /app/run.py $CMD_ARGS && cp /app/results.* /results/"]
