@@ -5,3 +5,4 @@ results
 tmp
 frontend/node_modules
 frontend/build
+frontend/package-lock.json
