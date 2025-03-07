@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат выполнения команды и логи контейнера</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        pre { background: #f0f0f0; padding: 10px; border: 1px solid #ccc; }
+        #logs { white-space: pre-wrap; background: #f0f0f0; padding: 10px; border: 1px solid #ccc; height: 400px; overflow-y: scroll; margin-top: 20px; }
+        .links { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Результат выполнения команды</h1>
+    <pre>{{.Output}}</pre>
+    <h2>Логи контейнера: {{.ContainerName}}</h2>
+    <div id="logs"></div>
+    <div class="links">
+        <a href="/">Вернуться на главную страницу</a>
+    </div>
+    <script>
+        const logsDiv = document.getElementById('logs');
+        const containerName = "{{.ContainerName}}";
+        const evtSource = new EventSource('/api/logs/stream?container=' + containerName);
+        let finished = false;
+
+        evtSource.addEventListener('finish', function(e) {
+            finished = true;
+            logsDiv.innerHTML += e.data + "<br>";
+            evtSource.close();
+        });
+
+        evtSource.onmessage = function(e) {
+            logsDiv.innerHTML += e.data + "<br>";
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        };
+
+        evtSource.onerror = function(e) {
+            console.log(e)
+            if (!finished) {
+                logsDiv.innerHTML += "<br>Ошибка получения логов.";
+            }
+            evtSource.close();
+        };
+    </script>
+</body>
+</html>

@@ -1,20 +1,24 @@
+DROP TABLE IF EXISTS optimization_results;
+
 CREATE TABLE optimization_results (
-    id SERIAL PRIMARY KEY,                     -- Уникальный идентификатор строки
-    problem TEXT NOT NULL,                     -- Название задачи
-    dim SMALLINT NOT NULL,                     -- Размерность
-    n_init SMALLINT NOT NULL,                  -- Количество начальных выборок
-    n_iter SMALLINT NOT NULL,                  -- Количество итераций
-    metric TEXT NOT NULL,                      -- Название метрики
-    solution_f NUMERIC(10, 4) NOT NULL,        -- Значение функции решения
-    seed INTEGER NOT NULL,                     -- Значение инициализирующего seed
-    iteration INTEGER NOT NULL,                -- Номер итерации
-    nu NUMERIC(10, 4),                         -- Параметр (может быть NULL)
-    length_scale NUMERIC(10, 4),               -- Масштаб длины (может быть NULL)
-    metric_values TEXT,                        -- Метрики
-    x TEXT,                                    -- Координаты
-    f NUMERIC(10, 4),                          -- Значение целевой функции (может быть NULL)
-    f_model NUMERIC(10, 4),                    -- Модельное значение функции (может быть NULL)
-    time NUMERIC(10, 6),                       -- Время выполнения в секундах (может быть NULL)
-    x_best TEXT,                               -- Лучшие координаты
-    f_best NUMERIC(10, 4) NOT NULL             -- Лучшее значение функции
+    id SERIAL PRIMARY KEY,
+    algorithm_name TEXT NOT NULL,
+    algorithm_version TEXT NOT NULL,
+    dimension INTEGER NOT NULL,
+    instance_id INTEGER NOT NULL,
+    n_iter INTEGER NOT NULL,
+    algorithm INTEGER NOT NULL,
+    seed INTEGER NOT NULL,
+    n_particles INTEGER NOT NULL,
+    inertia_start DOUBLE PRECISION NOT NULL,
+    inertia_end DOUBLE PRECISION NOT NULL,
+    nostalgia DOUBLE PRECISION NOT NULL,
+    societal DOUBLE PRECISION NOT NULL,
+    topology TEXT NOT NULL,
+    tol_thres DOUBLE PRECISION,         -- допускается NULL
+    tol_win INTEGER NOT NULL,
+    expected_budget INTEGER NOT NULL,
+    actual_budget INTEGER NOT NULL,
+    best_result_x DOUBLE PRECISION[] NOT NULL,  -- массив для переменных x
+    best_result_f DOUBLE PRECISION NOT NULL     -- значение f[1]
 );
