@@ -1,4 +1,4 @@
-.PHONY: build docker run clean db-up db-clean
+.PHONY: build docker run clean db-up db-clean frontend
 
 IMAGE_NAME = axywewastaken/boela:0.1
 CUSTOM_IMAGE_PREFIX = boela-custom
@@ -11,21 +11,15 @@ DB_DIR = database
 HOST_RESULTS_DIR = results
 DB_DOCKERFILE = $(DB_DIR)/Dockerfile
 
-build:
-	@echo "Building custom image with arguments: $(ARGS)"
-	UNIQUE_TAG=$(shell date +%s%N) && \
-	docker build --build-arg ARGS="$(ARGS)" -f $(BENCH_DIR)/Dockerfile -t $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG . && \
-	echo "Custom image $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG built."
-
 docker:
 	@echo "Running container with arguments: $(ARGS)"
 	UNIQUE_TAG=$(shell date +%s%N) && \
 	CONTAINER_NAME=$(CONTAINER_NAME_PREFIX)-$$UNIQUE_TAG && \
 	docker build --build-arg ARGS="$(ARGS)" -f $(BENCH_DIR)/Dockerfile -t $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG . && \
-	docker run -d --name $$CONTAINER_NAME -v $(shell pwd)/$(HOST_RESULTS_DIR)/$$UNIQUE_TAG:/results $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG && \
-	echo "Container $$CONTAINER_NAME started."
+	docker run -d --name $$CONTAINER_NAME --label group=boela -v $(shell pwd)/$(HOST_RESULTS_DIR)/$$UNIQUE_TAG:/results $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG && \
+	echo "$$CONTAINER_NAME"
 
-db-up:
+db-up: db-clean
 	@echo "Starting PostgreSQL database..."
 	docker build -t $(DB_IMAGE) -f $(DB_DOCKERFILE) $(DB_DIR)
 	docker run --env-file $(ENV) -d --name $(DB_CONTAINER) -p 5432:5432 $(DB_IMAGE)
@@ -43,6 +37,10 @@ clean:
 	@echo "Removing all custom images..."
 	docker images $(CUSTOM_IMAGE_PREFIX) --format "{{.ID}}" | xargs -r docker rmi -f
 
-run:
+run: db-up
 	@echo "Running server..."
-	go run web/main.go
+	go run backend/cmd/server/main.go
+
+frontend:
+	@echo "Running frontend..."
+	cd frontend && npm run start

@@ -1,2 +1,7 @@
 .env
 results
+.vscode
+.DS_Store
+tmp
+frontend/node_modules
+frontend/build
