@@ -23,7 +23,7 @@ func main() {
 
 	// Запуск cron-задачи для сканирования каталога с результатами
 	resultsDir := "results"
-	db.StartCronTask(resultsDir, time.Minute)
+	db.StartCronTask(resultsDir, time.Minute/6)
 
 	// Создание роутера
 	r := router.NewRouter()

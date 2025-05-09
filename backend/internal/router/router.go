@@ -27,9 +27,19 @@ func NewRouter() *mux.Router {
 	// GET /api/v1/optimization/logs - поток логов контейнера (query параметр ?container=)
 	api.HandleFunc("/optimization/logs", handlers.ContainerLogsHandler).Methods("GET")
 
-	// (Опционально, можно добавить другие эндпоинты)
+	// GET /api/v1/methods — список доступных методов оптимизации
+	api.HandleFunc("/methods", handlers.GetAllOptimizationMethodsHandler).Methods("GET")
 
-	// Статическая раздача файлов, если необходимо
+	// Authenticated API
+	auth := api.PathPrefix("/admin").Subrouter()
+	auth.Use(middleware.AuthMiddleware)
+
+	api.HandleFunc("/files", handlers.ListFilesHandler).Methods("GET")              // список
+	api.HandleFunc("/files/upload", handlers.UploadFileHandler).Methods("POST")     // загрузка
+	api.HandleFunc("/files", handlers.DeleteFileHandler).Methods("DELETE")          // удаление
+	api.HandleFunc("/folders/create", handlers.CreateFolderHandler).Methods("POST") // создание папки
+
+	// Static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("web"))))
 
 	return r
