@@ -51,14 +51,15 @@ def parse_known_args() -> (argparse.Namespace, Dict[str, Any]):
 
 def load_algorithm(full_path: str):
     """Импортирует модуль по строке и возвращает экземпляр Algorithm"""
-    logging.info(f"Загрузка алгоритма из {full_path}")
+    logging.info(f"Попытка загрузить алгоритм «{full_path}»…")
     try:
         module = importlib.import_module(full_path)
         if not hasattr(module, "Algorithm"):
-            raise ImportError(f"Модуль {full_path} не содержит класс Algorithm")
+            raise ImportError(f"в модуле нет класса Algorithm")
         return module.Algorithm()
     except Exception as e:
-        raise ImportError(f"Ошибка загрузки алгоритма '{full_path}': {e}")
+        logging.info(f"Не удалось загрузить алгоритм «{full_path}»: {e}")
+        return None
 
 
 def main():
@@ -81,6 +82,8 @@ def main():
 
     # Загрузка и инициализация алгоритма
     algorithm = load_algorithm(args.method)
+    if algorithm is None:
+        return 1
 
     # Добавление параметров
     full_options = dynamic_args.copy()

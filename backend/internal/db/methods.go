@@ -56,3 +56,34 @@ func GetOptimizationMethodByID(id int) (*OptimizationMethod, error) {
 	}
 	return &m, nil
 }
+
+// InsertOptimizationMethod добавляет новый метод в БД и возвращает его ID.
+func InsertOptimizationMethod(
+	name string,
+	params map[string]OptimizationMethodParam,
+	filePath string,
+) (int, error) {
+	raw, err := json.Marshal(params)
+	if err != nil {
+		return 0, fmt.Errorf("ошибка сериализации параметров: %v", err)
+	}
+	var id int
+	err = DB.QueryRow(`
+        INSERT INTO optimization_methods (name, parameters, file_path)
+        VALUES ($1, $2, $3)
+        RETURNING id
+    `, name, raw, filePath).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("ошибка вставки метода: %v", err)
+	}
+	return id, nil
+}
+
+// DeleteOptimizationMethodByID удаляет метод по его ID.
+func DeleteOptimizationMethodByID(id int) error {
+	_, err := DB.Exec(`DELETE FROM optimization_methods WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("ошибка удаления метода: %v", err)
+	}
+	return nil
+}

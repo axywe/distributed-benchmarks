@@ -27,17 +27,20 @@ func NewRouter() *mux.Router {
 	// GET /api/v1/optimization/logs - поток логов контейнера (query параметр ?container=)
 	api.HandleFunc("/optimization/logs", handlers.ContainerLogsHandler).Methods("GET")
 
-	// GET /api/v1/methods — список доступных методов оптимизации
 	api.HandleFunc("/methods", handlers.GetAllOptimizationMethodsHandler).Methods("GET")
 
 	// Authenticated API
-	auth := api.PathPrefix("/admin").Subrouter()
+	auth := api.PathPrefix("").Subrouter()
 	auth.Use(middleware.AuthMiddleware)
 
-	api.HandleFunc("/files", handlers.ListFilesHandler).Methods("GET")              // список
-	api.HandleFunc("/files/upload", handlers.UploadFileHandler).Methods("POST")     // загрузка
-	api.HandleFunc("/files", handlers.DeleteFileHandler).Methods("DELETE")          // удаление
-	api.HandleFunc("/folders/create", handlers.CreateFolderHandler).Methods("POST") // создание папки
+	auth.HandleFunc("/files", handlers.ListFilesHandler).Methods("GET")
+	auth.HandleFunc("/files/upload", handlers.UploadFileHandler).Methods("POST")
+	auth.HandleFunc("/files/{path:.*}", handlers.DeleteFileHandler).Methods("DELETE")
+	auth.HandleFunc("/folders", handlers.CreateFolderHandler).Methods("POST")
+	auth.HandleFunc("/files/raw", handlers.RawFileHandler).Methods("GET")
+
+	auth.HandleFunc("/methods", handlers.CreateOptimizationMethodHandler).Methods("POST")
+	auth.HandleFunc("/methods/{id}", handlers.DeleteOptimizationMethodHandler).Methods("DELETE")
 
 	// Static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("web"))))
