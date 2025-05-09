@@ -17,6 +17,7 @@ import (
 	"gitlab.com/Taleh/distributed-benchmarks/internal/db"
 	"gitlab.com/Taleh/distributed-benchmarks/internal/helpers"
 	"gitlab.com/Taleh/distributed-benchmarks/internal/utils"
+	"gitlab.com/Taleh/distributed-benchmarks/sessions"
 )
 
 type OptimizationRequest struct {
@@ -129,6 +130,11 @@ func OptimizationPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userId, _ := sessions.GetUserIDByToken(r.Header.Get("Authorization"))
+	if userId != 0 {
+		args = append(args, "--user_id", fmt.Sprint(userId))
+	}
+
 	// 8. Запуск команды
 	output, err := utils.RunCommand(args)
 	if err != nil {
@@ -156,7 +162,7 @@ func validateCoreFields(m map[string]interface{}) error {
 		if !ok {
 			return fmt.Errorf("не указан параметр %s", key)
 		}
-		// JSON числа приходят как float64
+
 		num, ok := val.(float64)
 		if !ok {
 			return fmt.Errorf("некорректный тип для %s", key)
@@ -273,4 +279,28 @@ func ContainerLogsHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "event: finish\ndata: Контейнер завершил работу\n\n")
 	flusher.Flush()
 	cmd.Wait()
+}
+
+// GET /api/v1/optimization/results
+func OptimizationResultsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := r.URL.Query()
+	userId, err := sessions.GetUserIDByToken(r.Header.Get("Authorization"))
+	if err != nil {
+		helpers.WriteErrorResponse(w, "Ошибка авторизации", http.StatusUnauthorized)
+		return
+	}
+	limit := vars.Get("limit")
+	offset := vars.Get("offset")
+	if limit == "" {
+		limit = "10"
+	}
+	if offset == "" {
+		offset = "0"
+	}
+	results, err := db.GetOptimizationResults(limit, offset, userId)
+	if err != nil {
+		helpers.WriteErrorResponse(w, "Ошибка получения результатов: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	helpers.WriteJSONResponse(w, results, http.StatusOK)
 }

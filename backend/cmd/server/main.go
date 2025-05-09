@@ -10,11 +10,22 @@ import (
 	"time"
 
 	"github.com/gorilla/handlers"
+	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 	"gitlab.com/Taleh/distributed-benchmarks/internal/db"
 	"gitlab.com/Taleh/distributed-benchmarks/internal/router"
+	"gitlab.com/Taleh/distributed-benchmarks/sessions"
 )
 
+var RedisClient *redis.Client
+
 func main() {
+	_ = godotenv.Load(".env")
+
+	if err := sessions.Init(); err != nil {
+		log.Fatalf("Ошибка подключения к Redis: %v", err)
+	}
+
 	// Инициализация подключения к базе данных
 	connStr := "postgresql://boela_user:boela_password@localhost:5432/boela_db?sslmode=disable"
 	if err := db.InitDB(connStr); err != nil {

@@ -11,9 +11,17 @@ CREATE TABLE optimization_methods (
     file_path TEXT NOT NULL DEFAULT ''
 );
 
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    login TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    "group" TEXT
+);
+
 -- Основная таблица результатов оптимизации
 CREATE TABLE optimization_results (
     id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     result_id TEXT NOT NULL UNIQUE,
     method_id INTEGER NOT NULL REFERENCES optimization_methods(id) ON DELETE CASCADE,
     algorithm_name TEXT NOT NULL,

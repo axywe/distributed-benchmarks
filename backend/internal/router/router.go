@@ -15,16 +15,14 @@ func NewRouter() *mux.Router {
 	api := r.PathPrefix("/api/v1").Subrouter()
 	api.Use(middleware.LoggingMiddleware)
 
-	// POST /api/v1/optimization - запускает процесс оптимизации
+	// Authentication
+	api.HandleFunc("/login", handlers.LoginHandler).Methods("POST")
+	api.HandleFunc("/register", handlers.RegisterHandler).Methods("POST")
+
+	// Public API
 	api.HandleFunc("/optimization", handlers.OptimizationPostHandler).Methods("POST")
-
-	// GET /api/v1/optimization/results/{id} - получение результата оптимизации
 	api.HandleFunc("/optimization/results/{id}", handlers.OptimizationResultHandler).Methods("GET")
-
-	// GET /api/v1/optimization/results/{id}/download - скачивание results.csv
 	api.HandleFunc("/optimization/results/{id}/download", handlers.OptimizationDownloadHandler).Methods("GET")
-
-	// GET /api/v1/optimization/logs - поток логов контейнера (query параметр ?container=)
 	api.HandleFunc("/optimization/logs", handlers.ContainerLogsHandler).Methods("GET")
 
 	api.HandleFunc("/methods", handlers.GetAllOptimizationMethodsHandler).Methods("GET")
@@ -33,14 +31,21 @@ func NewRouter() *mux.Router {
 	auth := api.PathPrefix("").Subrouter()
 	auth.Use(middleware.AuthMiddleware)
 
-	auth.HandleFunc("/files", handlers.ListFilesHandler).Methods("GET")
-	auth.HandleFunc("/files/upload", handlers.UploadFileHandler).Methods("POST")
-	auth.HandleFunc("/files/{path:.*}", handlers.DeleteFileHandler).Methods("DELETE")
-	auth.HandleFunc("/folders", handlers.CreateFolderHandler).Methods("POST")
-	auth.HandleFunc("/files/raw", handlers.RawFileHandler).Methods("GET")
+	auth.HandleFunc("/user", handlers.UserHandler).Methods("GET")
 
-	auth.HandleFunc("/methods", handlers.CreateOptimizationMethodHandler).Methods("POST")
-	auth.HandleFunc("/methods/{id}", handlers.DeleteOptimizationMethodHandler).Methods("DELETE")
+	auth.HandleFunc("/optimization/results", handlers.OptimizationResultsHandler).Methods("GET")
+
+	// Admin API
+	admin := auth.PathPrefix("").Subrouter()
+	admin.Use(middleware.AuthMiddleware)
+	admin.HandleFunc("/files", handlers.ListFilesHandler).Methods("GET")
+	admin.HandleFunc("/files/upload", handlers.UploadFileHandler).Methods("POST")
+	admin.HandleFunc("/files/{path:.*}", handlers.DeleteFileHandler).Methods("DELETE")
+	admin.HandleFunc("/folders", handlers.CreateFolderHandler).Methods("POST")
+	admin.HandleFunc("/files/raw", handlers.RawFileHandler).Methods("GET")
+
+	admin.HandleFunc("/methods", handlers.CreateOptimizationMethodHandler).Methods("POST")
+	admin.HandleFunc("/methods/{id}", handlers.DeleteOptimizationMethodHandler).Methods("DELETE")
 
 	// Static files
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("web"))))

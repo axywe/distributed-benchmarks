@@ -44,3 +44,9 @@ run: db-up
 frontend:
 	@echo "Running frontend..."
 	cd frontend && npm run start
+
+db:
+	docker-compose up -d
+
+db-down:
+	docker-compose down

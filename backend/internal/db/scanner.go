@@ -22,7 +22,6 @@ func ScanResultsFolder(resultsDir string) error {
 			return filepath.SkipDir
 		}
 		if !d.IsDir() && d.Name() == "results.json" {
-			// прочитать JSON
 			data, err := ioutil.ReadFile(path)
 			if err != nil {
 				log.Printf("Ошибка чтения %s: %v", path, err)
@@ -33,18 +32,15 @@ func ScanResultsFolder(resultsDir string) error {
 				log.Printf("Ошибка парсинга JSON %s: %v", path, err)
 				return nil
 			}
-			// результатный ID — имя папки
 			parent := filepath.Dir(path)
 			res.ResultID = filepath.Base(parent)
 
-			// вставить
 			if err := InsertOptimizationResult(res); err != nil {
 				log.Printf("Ошибка вставки %s: %v", path, err)
 				return nil
 			}
 			log.Printf("Вставлен результат из %s", path)
 
-			// переименовать папку в processed
 			newDir := parent + ".processed"
 			if err := os.Rename(parent, newDir); err != nil {
 				log.Printf("Ошибка переименования %s: %v", parent, err)

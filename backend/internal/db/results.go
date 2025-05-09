@@ -4,12 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/lib/pq"
 )
 
 // OptimizationResult описывает результат и динамические входные параметры.
 type OptimizationResult struct {
+	UserID           int                    `json:"user_id"`
 	AlgorithmName    string                 `json:"algorithm_name"`
 	AlgorithmVersion string                 `json:"algorithm_version"`
 	Parameters       map[string]interface{} `json:"parameters"`
@@ -54,14 +56,22 @@ func InsertOptimizationResult(or OptimizationResult) error {
 		values[name] = int(f)
 	}
 
+	var userIDParam interface{}
+	if or.UserID > 0 {
+		userIDParam = or.UserID
+	} else {
+		userIDParam = nil
+	}
+
 	// 2. Вставляем сам результат
 	_, err = tx.Exec(`
 INSERT INTO optimization_results
-  (result_id, method_id, algorithm_name, algorithm_version,
+  (user_id, result_id, method_id, algorithm_name, algorithm_version,
    dimension, instance_id, n_iter, algorithm, seed,
    expected_budget, actual_budget, best_result_x, best_result_f)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 `,
+		userIDParam,
 		or.ResultID,
 		methodID,
 		or.AlgorithmName,
@@ -140,4 +150,106 @@ func parseBestX(br map[string]float64) []float64 {
 
 func parseBestF(br map[string]float64) float64 {
 	return br["f[1]"]
+}
+
+func GetOptimizationResults(limitStr, offsetStr string, userID int) ([]OptimizationResult, error) {
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid limit %q: %v", limitStr, err)
+	}
+	offset, err := strconv.Atoi(offsetStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid offset %q: %v", offsetStr, err)
+	}
+
+	rows, err := DB.Query(`
+SELECT result_id, algorithm_name, algorithm_version,
+       expected_budget, actual_budget,
+       best_result_x, best_result_f
+FROM optimization_results
+WHERE user_id = $1
+ORDER BY result_id DESC
+LIMIT $2 OFFSET $3
+`, userID, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("query optimization_results: %v", err)
+	}
+	defer rows.Close()
+
+	var results []OptimizationResult
+	for rows.Next() {
+		var or OptimizationResult
+		var bestX []float64
+		var bestF float64
+
+		if err := rows.Scan(
+			&or.ResultID,
+			&or.AlgorithmName,
+			&or.AlgorithmVersion,
+			&or.ExpectedBudget,
+			&or.ActualBudget,
+			pq.Array(&bestX),
+			&bestF,
+		); err != nil {
+			return nil, fmt.Errorf("scan optimization_results: %v", err)
+		}
+
+		br := make(map[string]float64, len(bestX)+1)
+		for i, v := range bestX {
+			br[fmt.Sprintf("x[%d]", i)] = v
+		}
+		br["f[1]"] = bestF
+		or.BestResult = br
+
+		paramRows, err := DB.Query(`
+SELECT name, value_text, value_numeric, type
+FROM optimization_input_parameters
+WHERE result_id = $1
+`, or.ResultID)
+		if err != nil {
+			return nil, fmt.Errorf("query input parameters: %v", err)
+		}
+
+		paramsMap := make(map[string]interface{})
+		for paramRows.Next() {
+			var name, typ string
+			var text sql.NullString
+			var num sql.NullFloat64
+
+			if err := paramRows.Scan(&name, &text, &num, &typ); err != nil {
+				paramRows.Close()
+				return nil, fmt.Errorf("scan input param: %v", err)
+			}
+
+			var val interface{}
+			switch typ {
+			case "float":
+				if num.Valid {
+					val = num.Float64
+				} else {
+					val, _ = strconv.ParseFloat(text.String, 64)
+				}
+			case "int":
+				if num.Valid {
+					val = int(num.Float64)
+				} else {
+					i, _ := strconv.Atoi(text.String)
+					val = i
+				}
+			case "bool":
+				b, _ := strconv.ParseBool(text.String)
+				val = b
+			default:
+				val = text.String
+			}
+
+			paramsMap[name] = val
+		}
+		paramRows.Close()
+		or.Parameters = paramsMap
+
+		results = append(results, or)
+	}
+
+	return results, nil
 }

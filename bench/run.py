@@ -19,6 +19,7 @@ def parse_known_args() -> (argparse.Namespace, Dict[str, Any]):
     parser.add_argument("--n_iter", type=int, default=10)
     parser.add_argument("--method", type=str, required=True,
                         help="Full import path to algorithm, e.g. algorithms.pso or custom.test")
+    parser.add_argument("--user_id", type=int)
 
     # Остальные аргументы — динамические
     known_args, unknown = parser.parse_known_args()
@@ -72,6 +73,7 @@ def main():
 
     logging.info("Запуск скрипта оптимизации.")
     args, dynamic_args = parse_known_args()
+    user_id = args.user_id
     logging.info(f"Фиксированные аргументы: {args}")
     logging.info(f"Динамические аргументы: {dynamic_args}")
 
@@ -119,6 +121,7 @@ def main():
     actual_budget = history.shape[0]
 
     results = {
+        "user_id": user_id,
         "algorithm_name": algorithm.NAME,
         "algorithm_version": algorithm.VERSION,
         "parameters": {**vars(args), **dynamic_args},
