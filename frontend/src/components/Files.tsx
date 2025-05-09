@@ -167,7 +167,7 @@ const Files: React.FC = () => {
         <input
           type="text"
           className="form-control d-inline-block w-auto me-2"
-          placeholder="Новая папка"
+          placeholder={strings.files.new_folder_placeholder}
           value={newFolderName}
           onChange={e => setNewFolderName(e.target.value)}
         />

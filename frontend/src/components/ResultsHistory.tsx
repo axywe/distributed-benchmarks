@@ -59,7 +59,7 @@ const ResultsHistory: React.FC = () => {
         }
         if (!res.ok) throw new Error(res.statusText);
         const json = (await res.json()) as ApiResponse<OptimizationResult[]>;
-        setResults(json.data);
+        setResults(Array.isArray(json.data) ? json.data : []);
       } catch (e: any) {
         setError(e.message || 'History loading error.');
       } finally {
