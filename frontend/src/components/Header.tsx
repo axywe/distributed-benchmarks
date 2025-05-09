@@ -1,15 +1,31 @@
-// src/components/Header.tsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getCurrentUser, User } from '../api';
+import strings from '../i18n';
 
 const Header: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const token = localStorage.getItem('authToken');
 
+  useEffect(() => {
+    if (token) {
+      getCurrentUser()
+        .then(u => setUser(u))
+        .catch(() => {
+          localStorage.removeItem('authToken');
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
+  }, [token, navigate]);
+
   const handleLogout = () => {
-    // Удаляем токен и перенаправляем на страницу логина
     localStorage.removeItem('authToken');
-    navigate('/login');
+    setUser(null);
+
   };
 
   return (
@@ -32,14 +48,21 @@ const Header: React.FC = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/">Home</Link>
             </li>
-            {token && (
+            {token && !loading && (
               <>
+              <li className="nav-item">
+                  <Link className="nav-link" to="/my">History</Link>
+                </li>
+              {user?.group === 'admin' && (
                 <li className="nav-item">
                   <Link className="nav-link" to="/dashboard">Dashboard</Link>
                 </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to="/files">Files</Link>
-                </li>
+                )}
+                {user?.group === 'admin' && (
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/files">Files</Link>
+                  </li>
+                )}
               </>
             )}
           </ul>
@@ -50,7 +73,9 @@ const Header: React.FC = () => {
               </li>
             ) : (
               <li className="nav-item">
-                <button className="btn btn-outline-danger" onClick={handleLogout}>Logout</button>
+                <button className="btn btn-outline-danger" onClick={handleLogout}>
+                  Logout
+                </button>
               </li>
             )}
           </ul>

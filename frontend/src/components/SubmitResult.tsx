@@ -1,6 +1,6 @@
-// src/components/SubmitResult.tsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
+import strings from '../i18n';
 
 interface LocationState {
   result: {
@@ -13,9 +13,7 @@ const SubmitResult: React.FC = () => {
   const navigate = useNavigate();
   const state = location.state as LocationState;
 
-  // Полное имя контейнера из бэка
   const rawContainer = state?.result?.container_name || '';
-  // Извлекаем ID (последнюю часть после дефиса)
   const resultID = rawContainer.split('-').pop() || '';
 
   const [logs, setLogs] = useState<string[]>([]);
@@ -30,7 +28,7 @@ const SubmitResult: React.FC = () => {
   
     evtSource.onmessage = (e) => {
       setLogs((prev) => [...prev, e.data]);
-      if (e.data.includes('Контейнер завершил работу')) {
+      if (e.data.includes('Container has finished execution')) {
         setFinished(true);
       }
     };
@@ -42,20 +40,20 @@ const SubmitResult: React.FC = () => {
     });
   
     evtSource.onerror = () => {
-      setLogs((prev) => [...prev, 'Ошибка получения логов.']);
+      setLogs((prev) => [...prev, 'Failed to retrieve logs.']);
       evtSource.close();
     };
   
     return () => {
       evtSource.close();
     };
-  }, [rawContainer]); // ❗ Убрали finished из зависимостей
+  }, [rawContainer]);
   
 
   return (
     <div className="container mt-4">
       <h1 className="mb-3">
-        Optimization Job ID: {resultID || 'не указан'}
+        Optimization Job ID: {resultID || 'not specified'}
       </h1>
 
       <div className="mb-3">
@@ -72,14 +70,14 @@ const SubmitResult: React.FC = () => {
 
       <div className="d-flex gap-2">
         <Link to="/" className="btn btn-outline-secondary">
-          На главную
+        Back to Home
         </Link>
         <button
           className="btn btn-primary"
           disabled={!finished}
           onClick={() => navigate(`/results/${resultID}`)}
         >
-          {finished ? 'Перейти к результату' : 'Ожидание завершения...'}
+          {finished ? 'View Result' : 'Waiting for completion...'}
         </button>
       </div>
     </div>

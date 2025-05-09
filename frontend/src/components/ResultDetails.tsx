@@ -1,7 +1,7 @@
-// src/components/ResultDetails.tsx
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { OptimizationResult } from '../api';
+import strings from '../i18n';
 
 interface OptimizationAPIResponse {
   success: boolean;
@@ -139,7 +139,7 @@ const ResultDetails: React.FC = () => {
         >
           {downloading ? 'Downloading...' : 'Download CSV'}
         </button>
-        <Link to="/" className="btn btn-outline-secondary">На главную</Link>
+        <Link to="/" className="btn btn-outline-secondary">Back to Home</Link>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
-// src/components/Home.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { submitOptimization, SubmitOptimizationResponse, OptimizationResult } from '../api';
+import { submitOptimization, OptimizationResult } from '../api';
+import strings from '../i18n';
 
 interface MethodParam {
   type: 'int' | 'float' | 'string';
@@ -32,7 +32,6 @@ const Home: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // Загружаем методы
   useEffect(() => {
     fetch('/api/v1/methods')
       .then(r => r.json())
@@ -43,13 +42,11 @@ const Home: React.FC = () => {
       .catch(err => alert('Ошибка загрузки методов: ' + err));
   }, []);
 
-  // При смене алгоритма проставляем дефолты динамических полей
   useEffect(() => {
     const m = methods.find(x => x.id === form.algorithm);
     if (!m) return;
     setSelectedMethod(m);
   
-    // только базовые поля
     const base = {
       dimension: form.dimension,
       instance_id: form.instance_id,
@@ -58,7 +55,6 @@ const Home: React.FC = () => {
       seed: form.seed,
     };
   
-    // добавить только нужные параметры для выбранного метода
     const dynamic: Record<string, any> = {};
     Object.entries(m.parameters).forEach(([key, meta]) => {
       dynamic[key] = meta.default != null ? meta.default : (meta.nullable ? null : '');
@@ -79,14 +75,11 @@ const Home: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // POST /optimization
       const data = await submitOptimization(form);
       if (data.cached) {
-        // показываем модалку с matches
         setCachedMatches(data.matches || []);
         setShowModal(true);
       } else {
-        // переходим на страницу логов
         navigate('/submit-result', { state: { result: { container_name: data.container_name } } });
       }
     } catch (err: any) {
@@ -100,7 +93,6 @@ const Home: React.FC = () => {
     setShowModal(false);
     setLoading(true);
     try {
-      // заново, но с force_run
       const forced = { ...form, force_run: true };
       const data = await submitOptimization(forced);
       navigate('/submit-result', { state: { result: { container_name: data.container_name } } });
@@ -124,7 +116,7 @@ const Home: React.FC = () => {
       <h1 className="mb-4">Optimization Form</h1>
       <form onSubmit={handleSubmit}>
         <div className="row g-3">
-          {/* Статичные поля */}
+          {}
           {['dimension','instance_id','n_iter','seed'].map(key => (
             <div key={key} className="col-md-3">
               <label className="form-label">{key}</label>
@@ -138,7 +130,7 @@ const Home: React.FC = () => {
             </div>
           ))}
 
-          {/* Algorithm */}
+          {}
           <div className="col-md-3">
             <label className="form-label">algorithm</label>
             <select
@@ -153,7 +145,7 @@ const Home: React.FC = () => {
             </select>
           </div>
 
-          {/* Динамические поля */}
+          {}
           {selectedMethod && Object.entries(selectedMethod.parameters).map(([name, meta]) => (
             <div key={name} className="col-md-4">
               <label className="form-label">{name}</label>
@@ -177,13 +169,13 @@ const Home: React.FC = () => {
         </div>
       </form>
 
-      {/* Модалка для кэшированных результатов */}
+      {}
       {showModal && (
         <div className="modal show d-block" tabIndex={-1} role="dialog">
           <div className="modal-dialog" role="document">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Найдены кэшированные результаты</h5>
+                <h5 className="modal-title">These results already exist</h5>
                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
               </div>
               <div className="modal-body">
@@ -203,11 +195,11 @@ const Home: React.FC = () => {
                     <div className="d-flex gap-2">
                       <button className="btn btn-info btn-sm"
                               onClick={()=>handleGoToResult(res.result_id)}>
-                        Перейти
+                        View
                       </button>
                       <button className="btn btn-success btn-sm"
                               onClick={()=>handleDownloadCsv(res.result_id)}>
-                        Скачать CSV
+                        Download CSV
                       </button>
                     </div>
                   </div>
@@ -215,10 +207,10 @@ const Home: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={()=>setShowModal(false)}>
-                  Закрыть
+                  Close
                 </button>
                 <button className="btn btn-danger" onClick={handleForceRun}>
-                  Запустить всё равно
+                Run anyway
                 </button>
               </div>
             </div>

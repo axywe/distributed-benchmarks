@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import strings from '../i18n';
 
 const Exit: React.FC = () => {
   const navigate = useNavigate();
@@ -11,8 +12,8 @@ const Exit: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <h2>Выход</h2>
-      <p>Идёт выход из системы...</p>
+      <h2>{strings.exit.title}</h2>
+      <p>{strings.exit.message}</p>
     </div>
   );
 };

@@ -14,7 +14,6 @@ export interface OptimizationResult {
   best_result: Record<string, number>;
 }
 
-// Новый формат ответа для POST
 export interface SubmitOptimizationResponse {
   success: boolean;
   data: {
@@ -24,13 +23,24 @@ export interface SubmitOptimizationResponse {
   };
   meta?: any;
 }
+export interface User {
+  id: number;
+  login: string;
+  password: string;
+  group: string;
+}
 
 export async function submitOptimization(
   params: OptimizationParameters
 ): Promise<SubmitOptimizationResponse['data']> {
+  const token = localStorage.getItem('authToken');
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
   const res = await fetch(`${BASE_URL}/optimization`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: headers,
     body: JSON.stringify(params),
   });
   const json: SubmitOptimizationResponse = await res.json();
@@ -39,3 +49,19 @@ export async function submitOptimization(
   }
   return json.data;
 }
+
+export async function getCurrentUser(): Promise<User> {
+  const token = localStorage.getItem('authToken');
+  const res = await fetch('/api/v1/user', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  if (!res.ok) {
+    throw new Error('Unauthorized');
+  }
+
+  const json = await res.json();
+  return json.data;
+}
+

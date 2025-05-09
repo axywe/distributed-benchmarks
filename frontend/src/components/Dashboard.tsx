@@ -1,6 +1,6 @@
-// src/components/Dashboard.tsx
 import React, { useEffect, useState, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import strings from '../i18n';
 
 type MethodParam = {
   name: string;
@@ -28,6 +28,9 @@ const Dashboard: React.FC = () => {
 
   const navigate = useNavigate();
   const token = localStorage.getItem('authToken');
+  if (!token) {
+    navigate('/login');
+  }
 
   const apiFetch = async (url: string, opts: RequestInit = {}) => {
     const headers = opts.headers || {};
@@ -56,12 +59,12 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const deleteMethod = async (id: number) => {
-    if (!window.confirm('Удалить метод?')) return;
+    if (!window.confirm(strings.dashboard.delete_confirm)) return;
     try {
       await apiFetch(`/api/v1/methods/${id}`, { method: 'DELETE' });
       loadMethods();
     } catch (e: any) {
-      alert('Ошибка удаления: ' + e.message);
+      alert(strings.dashboard.alerts.deletion_error + e.message);
     }
   };
 
@@ -90,16 +93,14 @@ const Dashboard: React.FC = () => {
   };
 
   const createMethod = async () => {
-    if (!methodName.trim()) return alert('Введите имя метода');
+    if (!methodName.trim()) return alert(strings.dashboard.modal.enter_method_name);
     try {
-      // 1) создать папку
       await apiFetch('/api/v1/folders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ path: '', name: methodName }),
       });
 
-      // 2) загрузить файлы по одному
       for (const f of fileInputs) {
         if (!f) continue;
         const form = new FormData();
@@ -110,7 +111,6 @@ const Dashboard: React.FC = () => {
         );
       }
 
-      // 3) создать запись в БД
       const paramsObj: Record<string, any> = {};
       for (const p of params) {
         paramsObj[p.name] = {
@@ -138,30 +138,30 @@ const Dashboard: React.FC = () => {
       setFileInputs([]);
       loadMethods();
     } catch (e: any) {
-      alert('Ошибка создания: ' + e.message);
+      alert(strings.dashboard.alerts.creation_error + e.message);
     }
   };
 
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2>Управление алгоритмами</h2>
+        <h2>{strings.dashboard.management_title}</h2>
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          Добавить алгоритм
+          {strings.dashboard.add_button}
         </button>
       </div>
       {error && <div className="alert alert-danger">{error}</div>}
       {loading ? (
-        <p>Загрузка…</p>
+        <p>{strings.resultDetails.spinner}</p>
       ) : (
         <table className="table table-bordered">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Имя</th>
-              <th>Путь</th>
-              <th>Параметры</th>
-              <th>Действия</th>
+              <th>{strings.dashboard.table.id}</th>
+              <th>{strings.dashboard.table.name}</th>
+              <th>{strings.dashboard.table.path}</th>
+              <th>{strings.dashboard.table.parameters}</th>
+              <th>{strings.dashboard.table.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -183,7 +183,7 @@ const Dashboard: React.FC = () => {
                     className="btn btn-sm btn-danger"
                     onClick={() => deleteMethod(m.id)}
                   >
-                    Удалить
+                    {strings.files.delete}
                   </button>
                 </td>
               </tr>
@@ -191,7 +191,7 @@ const Dashboard: React.FC = () => {
             {methods.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center text-muted">
-                  Нет методов
+                  {strings.dashboard.table.no_methods}
                 </td>
               </tr>
             )}
@@ -204,7 +204,7 @@ const Dashboard: React.FC = () => {
           <div className="modal-dialog modal-lg">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Новый алгоритм</h5>
+                <h5 className="modal-title">{strings.dashboard.modal.title}</h5>
                 <button
                   type="button"
                   className="btn-close"
@@ -213,7 +213,7 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="modal-body">
                 <div className="mb-3">
-                  <label>Имя метода</label>
+                  <label>{strings.dashboard.modal.method_name_label}</label>
                   <input
                     className="form-control"
                     value={methodName}
@@ -222,7 +222,7 @@ const Dashboard: React.FC = () => {
                 </div>
 
                 <div className="mb-3">
-                  <label>Файлы алгоритма</label>
+                  <label>{strings.dashboard.modal.files_label}</label>
                   {fileInputs.map((f, i) => (
                     <div key={i} className="d-flex gap-2 align-items-center mb-2">
                       <input
@@ -241,17 +241,17 @@ const Dashboard: React.FC = () => {
                     </div>
                   ))}
                   <button className="btn btn-outline-secondary btn-sm" onClick={addFileInput}>
-                    + Добавить файл
+                    {strings.dashboard.modal.add_file}
                   </button>
                 </div>
 
                 <div className="mb-3">
-                  <label>Параметры</label>
+                  <label>{strings.dashboard.modal.parameters_label}</label>
                   {params.map((p, i) => (
                     <div key={i} className="d-flex gap-2 align-items-center mb-2">
                       <input
                         className="form-control"
-                        placeholder="Имя"
+                        placeholder={strings.dashboard.modal.enter_method_name}
                         value={p.name}
                         onChange={e => updateParam(i, 'name', e.target.value)}
                       />
@@ -288,7 +288,7 @@ const Dashboard: React.FC = () => {
                     </div>
                   ))}
                   <button className="btn btn-outline-secondary btn-sm" onClick={addParam}>
-                    + Добавить параметр
+                    {strings.dashboard.modal.add_parameter}
                   </button>
                 </div>
               </div>
@@ -297,14 +297,14 @@ const Dashboard: React.FC = () => {
                   className="btn btn-secondary"
                   onClick={() => setShowModal(false)}
                 >
-                  Отмена
+                  {strings.dashboard.modal.cancel}
                 </button>
                 <button
                   className="btn btn-primary"
                   onClick={createMethod}
                   disabled={!methodName.trim()}
                 >
-                  Отправить
+                  {strings.dashboard.modal.submit}
                 </button>
               </div>
             </div>
