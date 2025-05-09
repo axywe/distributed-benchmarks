@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 import SubmitResult from './components/SubmitResult';
 import ResultDetails from './components/ResultDetails';
+import Dashboard from './components/Dashboard';
 
 const App: React.FC = () => {
   return (
@@ -11,6 +12,7 @@ const App: React.FC = () => {
         <Route path="/" element={<Home />} />
         <Route path="/submit-result" element={<SubmitResult />} />
         <Route path="/results/:resultID" element={<ResultDetails />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
   );

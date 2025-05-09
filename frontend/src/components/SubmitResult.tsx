@@ -1,3 +1,4 @@
+// src/components/SubmitResult.tsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 
@@ -5,67 +6,81 @@ interface LocationState {
   result: {
     container_name: string;
   };
-  resultID?: string;
 }
 
 const SubmitResult: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const state = location.state as LocationState;
+
+  // Полное имя контейнера из бэка
+  const rawContainer = state?.result?.container_name || '';
+  // Извлекаем ID (последнюю часть после дефиса)
+  const resultID = rawContainer.split('-').pop() || '';
 
   const [logs, setLogs] = useState<string[]>([]);
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    // Проверяем, что в state есть поле result, а в нём container_name
-    if (!state?.result?.container_name) return;
-
-    const containerName = state.result.container_name;
-    console.log('Container Name:', containerName);
-
-    // Подключаемся к SSE с указанным контейнером
-    const evtSource = new EventSource('http://localhost:8080/api/v1/optimization/logs?container=' + containerName);
-
+    if (!rawContainer) return;
+  
+    const evtSource = new EventSource(
+      `/api/v1/optimization/logs?container=${rawContainer}`
+    );
+  
     evtSource.onmessage = (e) => {
-      setLogs(prev => [...prev, e.data]);
+      setLogs((prev) => [...prev, e.data]);
+      if (e.data.includes('Контейнер завершил работу')) {
+        setFinished(true);
+      }
     };
-
+  
     evtSource.addEventListener('finish', (e) => {
       setFinished(true);
-      setLogs(prev => [...prev, e.data]);
+      setLogs((prev) => [...prev, e.data]);
       evtSource.close();
     });
-
+  
     evtSource.onerror = () => {
-      if (!finished) {
-        setLogs(prev => [...prev, 'Ошибка получения логов.']);
-      }
+      setLogs((prev) => [...prev, 'Ошибка получения логов.']);
       evtSource.close();
     };
-
+  
     return () => {
       evtSource.close();
     };
-  }, [state, finished]);
+  }, [rawContainer]); // ❗ Убрали finished из зависимостей
+  
 
   return (
-    <div className="container">
-      <h1>Optimization Job Started</h1>
-      <h2>
-        Container Logs:{' '}
-        {state?.result?.container_name || 'Не указан'}
-      </h2>
-      <div id="logs">
-        {logs.map((log, idx) => (
-          <div key={idx}>{log}</div>
-        ))}
+    <div className="container mt-4">
+      <h1 className="mb-3">
+        Optimization Job ID: {resultID || 'не указан'}
+      </h1>
+
+      <div className="mb-3">
+        <h5>Container Logs</h5>
+        <div
+          className="border bg-light p-3 rounded"
+          style={{ height: '400px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}
+        >
+          {logs.map((line, idx) => (
+            <div key={idx}>{line}</div>
+          ))}
+        </div>
       </div>
-      <div className="links" style={{ marginTop: '20px' }}>
-        <Link to="/">Return to Home</Link>
-        {finished && state?.resultID && (
-          <span style={{ marginLeft: '20px' }}>
-            <Link to={`/results/${state.resultID}`}>Go to Results</Link>
-          </span>
-        )}
+
+      <div className="d-flex gap-2">
+        <Link to="/" className="btn btn-outline-secondary">
+          На главную
+        </Link>
+        <button
+          className="btn btn-primary"
+          disabled={!finished}
+          onClick={() => navigate(`/results/${resultID}`)}
+        >
+          {finished ? 'Перейти к результату' : 'Ожидание завершения...'}
+        </button>
       </div>
     </div>
   );
