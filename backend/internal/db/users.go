@@ -12,7 +12,6 @@ type User struct {
 	Group    string `json:"group"`
 }
 
-// FindUserByLogin возвращает пользователя по логину
 func FindUserByLogin(login string) (*User, error) {
 	row := DB.QueryRow(`SELECT id, login, password, "group" FROM users WHERE login = $1`, login)
 
@@ -26,7 +25,6 @@ func FindUserByLogin(login string) (*User, error) {
 	return &u, nil
 }
 
-// FindUserByLogin возвращает пользователя по логину
 func FindUserById(id int) (*User, error) {
 	row := DB.QueryRow(`SELECT id, login, password, "group" FROM users WHERE id = $1`, id)
 
@@ -40,7 +38,6 @@ func FindUserById(id int) (*User, error) {
 	return &u, nil
 }
 
-// CreateUser создаёт нового пользователя
 func CreateUser(login, password, group string) (int, error) {
 	var id int
 	err := DB.QueryRow(`

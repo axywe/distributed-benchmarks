@@ -16,7 +16,6 @@ import (
 const basePath = "bench/custom"
 const trashBase = "trash"
 
-// FileInfo — ответ для списка
 type FileInfo struct {
 	Name  string `json:"name"`
 	Path  string `json:"path"`
@@ -46,10 +45,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // POST /api/v1/files/upload
-// multipart/form-data: поле "file", поле "path"
 func UploadFileHandler(w http.ResponseWriter, r *http.Request) {
-	// max upload размер, если надо:
-	// r.ParseMultipartForm(10 << 20)
 	path := r.FormValue("path")
 	fullPath := filepath.Join(basePath, filepath.Clean(path))
 	if err := os.MkdirAll(fullPath, 0755); err != nil {
@@ -81,7 +77,6 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request) {
 
 // DELETE /api/v1/files/{path:.*}
 func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
-	// 1) Берём путь из URL
 	pathParam := mux.Vars(r)["path"]
 	cleanPath := filepath.Clean(pathParam)
 	if cleanPath == "" || cleanPath == "." || cleanPath == "/" {
@@ -89,14 +84,12 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 2) Формируем источник и проверяем безопасность
 	src := filepath.Join(basePath, cleanPath)
 	if !strings.HasPrefix(src, filepath.Clean(basePath)) {
 		helpers.WriteErrorResponse(w, "Запрещён доступ вне директории", http.StatusForbidden)
 		return
 	}
 
-	// 3) Перемещаем в корзину с таймстемпом
 	ts := time.Now().Format("20060102_150405")
 	dst := filepath.Join(trashBase, ts, cleanPath)
 	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
@@ -112,7 +105,6 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // POST /api/v1/folders
-// JSON { "path":"sub/dir", "name":"newFolder" }
 func CreateFolderHandler(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Path string `json:"path"`
@@ -148,7 +140,6 @@ func CreateFolderHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func RawFileHandler(w http.ResponseWriter, r *http.Request) {
-	// читаем параметры
 	relPath := r.URL.Query().Get("path")
 	name := r.URL.Query().Get("name")
 	if name == "" {
@@ -156,23 +147,19 @@ func RawFileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// чистим и собираем полный путь
 	cleanPath := filepath.Clean(relPath)
 	filePath := filepath.Join(basePath, cleanPath, name)
 
-	// защита от выхода за корень
 	if !strings.HasPrefix(filepath.Clean(filePath), filepath.Clean(basePath)) {
 		helpers.WriteErrorResponse(w, "Запрещён доступ вне директории", http.StatusForbidden)
 		return
 	}
 
-	// проверяем, что это файл
 	info, err := os.Stat(filePath)
 	if err != nil || info.IsDir() {
 		helpers.WriteErrorResponse(w, "Файл не найден", http.StatusNotFound)
 		return
 	}
 
-	// отдать файл
 	http.ServeFile(w, r, filePath)
 }

@@ -28,7 +28,7 @@ const SubmitResult: React.FC = () => {
   
     evtSource.onmessage = (e) => {
       setLogs((prev) => [...prev, e.data]);
-      if (e.data.includes('Container has finished execution')) {
+      if (e.data.includes(strings.submitResult.finished_message)) {
         setFinished(true);
       }
     };
@@ -40,7 +40,7 @@ const SubmitResult: React.FC = () => {
     });
   
     evtSource.onerror = () => {
-      setLogs((prev) => [...prev, 'Failed to retrieve logs.']);
+      setLogs((prev) => [...prev, strings.submitResult.log_error]);
       evtSource.close();
     };
   
@@ -53,11 +53,11 @@ const SubmitResult: React.FC = () => {
   return (
     <div className="container mt-4">
       <h1 className="mb-3">
-        Optimization Job ID: {resultID || 'not specified'}
+        {strings.submitResult.job_id} {resultID || strings.submitResult.not_specified}
       </h1>
 
       <div className="mb-3">
-        <h5>Container Logs</h5>
+        <h5>{strings.submitResult.container_logs}</h5>
         <div
           className="border bg-light p-3 rounded"
           style={{ height: '400px', overflowY: 'auto', whiteSpace: 'pre-wrap' }}
@@ -70,14 +70,14 @@ const SubmitResult: React.FC = () => {
 
       <div className="d-flex gap-2">
         <Link to="/" className="btn btn-outline-secondary">
-        Back to Home
+        {strings.submitResult.back}
         </Link>
         <button
           className="btn btn-primary"
           disabled={!finished}
           onClick={() => navigate(`/results/${resultID}`)}
         >
-          {finished ? 'View Result' : 'Waiting for completion...'}
+          {finished ? strings.submitResult.view_result : strings.submitResult.waiting}
         </button>
       </div>
     </div>

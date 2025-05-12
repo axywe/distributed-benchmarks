@@ -1,28 +1,25 @@
 package handlers
 
-import (
-	"net/http"
+import "fmt"
 
-	"gitlab.com/Taleh/distributed-benchmarks/internal/helpers"
-)
+func ValidateCoreFields(m map[string]interface{}) error {
+	required := []string{"dimension", "instance_id", "n_iter", "seed"}
+	for _, key := range required {
+		val, ok := m[key]
+		if !ok {
+			return fmt.Errorf("не указан параметр %s", key)
+		}
 
-// ValidateOptimizationRequest проверяет общие поля.
-func ValidateOptimizationRequest(w http.ResponseWriter, req OptimizationRequest) bool {
-	if req.Dimension <= 0 {
-		helpers.WriteErrorResponse(w, "dimension должно быть > 0", http.StatusBadRequest)
-		return false
+		num, ok := val.(float64)
+		if !ok {
+			return fmt.Errorf("некорректный тип для %s", key)
+		}
+		if num < 0 {
+			return fmt.Errorf("параметр %s должен быть неотрицательным", key)
+		}
+		if (key == "dimension" || key == "n_iter") && num <= 0 {
+			return fmt.Errorf("параметр %s должен быть > 0", key)
+		}
 	}
-	if req.InstanceID < 0 {
-		helpers.WriteErrorResponse(w, "instance_id >= 0", http.StatusBadRequest)
-		return false
-	}
-	if req.NIter <= 0 {
-		helpers.WriteErrorResponse(w, "n_iter > 0", http.StatusBadRequest)
-		return false
-	}
-	if req.Seed < 0 {
-		helpers.WriteErrorResponse(w, "seed >= 0", http.StatusBadRequest)
-		return false
-	}
-	return true
+	return nil
 }

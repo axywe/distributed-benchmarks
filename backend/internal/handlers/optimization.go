@@ -24,7 +24,7 @@ type OptimizationRequest struct {
 	Dimension  int `json:"dimension"`
 	InstanceID int `json:"instance_id"`
 	NIter      int `json:"n_iter"`
-	Algorithm  int `json:"algorithm"` // method_id
+	Algorithm  int `json:"algorithm"`
 	Seed       int `json:"seed"`
 }
 
@@ -36,31 +36,26 @@ type OptimizationPostResponse struct {
 
 // POST /api/v1/optimization
 func OptimizationPostHandler(w http.ResponseWriter, r *http.Request) {
-	// 1. Считаем сырое тело
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		helpers.WriteErrorResponse(w, "Ошибка чтения тела запроса", http.StatusBadRequest)
 		return
 	}
 
-	// 2. Парсим в map для произвольных аргументов
 	var inputArgs map[string]interface{}
 	if err := json.Unmarshal(body, &inputArgs); err != nil {
 		helpers.WriteErrorResponse(w, "Ошибка парсинга JSON", http.StatusBadRequest)
 		return
 	}
 
-	// 3. Проверяем наличие флага принудительного запуска
 	forceRun := false
 	if force, ok := inputArgs["force_run"]; ok {
 		if b, ok := force.(bool); ok && b {
 			forceRun = true
 		}
-		// Удаляем параметр force_run перед передачей в RunCommand
 		delete(inputArgs, "force_run")
 	}
 
-	// 4. Извлекаем обязательный метод (algorithm) и проверяем его существование
 	rawAlgo, ok := inputArgs["algorithm"]
 	if !ok {
 		helpers.WriteErrorResponse(w, "Не указан параметр algorithm", http.StatusBadRequest)
@@ -82,15 +77,13 @@ func OptimizationPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 5. Валидация обязательных полей (если не force_run)
 	if !forceRun {
-		if err := validateCoreFields(inputArgs); err != nil {
+		if err := ValidateCoreFields(inputArgs); err != nil {
 			helpers.WriteErrorResponse(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 	}
 
-	// 6. Поиск в кэше (если не force_run)
 	if !forceRun {
 		matches, err := db.SearchOptimizationResults(inputArgs)
 		if err != nil {
@@ -98,7 +91,6 @@ func OptimizationPostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(matches) > 0 {
-			// Возвращаем весь массив matches
 			helpers.WriteJSONResponse(w, OptimizationPostResponse{
 				Cached:  true,
 				Matches: matches,
@@ -107,7 +99,6 @@ func OptimizationPostHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// 7. Подготовка аргументов для RunCommand
 	var keys []string
 	for k := range inputArgs {
 		keys = append(keys, k)
@@ -135,7 +126,6 @@ func OptimizationPostHandler(w http.ResponseWriter, r *http.Request) {
 		args = append(args, "--user_id", fmt.Sprint(userId))
 	}
 
-	// 8. Запуск команды
 	output, err := utils.RunCommand(args)
 	if err != nil {
 		log.Printf("Ошибка запуска команды: %v\nВывод: %s\n", err, string(output))
@@ -143,39 +133,13 @@ func OptimizationPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 9. Последняя строка вывода — имя контейнера
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 	container := lines[len(lines)-1]
 
-	// 10. Ответ клиенту
 	helpers.WriteJSONResponse(w, OptimizationPostResponse{
 		Cached:        false,
 		ContainerName: container,
 	}, http.StatusOK)
-}
-
-// validateCoreFields проверяет наличие и корректность dimension, instance_id, n_iter, seed
-func validateCoreFields(m map[string]interface{}) error {
-	required := []string{"dimension", "instance_id", "n_iter", "seed"}
-	for _, key := range required {
-		val, ok := m[key]
-		if !ok {
-			return fmt.Errorf("не указан параметр %s", key)
-		}
-
-		num, ok := val.(float64)
-		if !ok {
-			return fmt.Errorf("некорректный тип для %s", key)
-		}
-		if num < 0 {
-			return fmt.Errorf("параметр %s должен быть неотрицательным", key)
-		}
-		// dimension и n_iter > 0
-		if (key == "dimension" || key == "n_iter") && num <= 0 {
-			return fmt.Errorf("параметр %s должен быть > 0", key)
-		}
-	}
-	return nil
 }
 
 // GET /api/v1/optimization/results/{id}

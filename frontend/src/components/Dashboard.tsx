@@ -152,7 +152,7 @@ const Dashboard: React.FC = () => {
       </div>
       {error && <div className="alert alert-danger">{error}</div>}
       {loading ? (
-        <p>{strings.resultDetails.spinner}</p>
+        <p>{strings.dashboard.spinner}</p>
       ) : (
         <table className="table table-bordered">
           <thead>

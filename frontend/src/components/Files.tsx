@@ -215,7 +215,7 @@ const Files: React.FC = () => {
                           className="btn btn-link"
                           onClick={() => navigateTo(entry.name)}
                         >
-                          📁 {entry.name}
+                          {strings.files.folder_emoji} {entry.name}
                         </button>
                       : entry.name
                     }

@@ -31,7 +31,7 @@ const Header: React.FC = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light mb-4">
       <div className="container-fluid">
-        <Link className="navbar-brand" to="/">Boela</Link>
+        <Link className="navbar-brand" to="/">{strings.header.title}</Link>
         <button
           className="navbar-toggler"
           type="button"
@@ -46,21 +46,21 @@ const Header: React.FC = () => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav me-auto">
             <li className="nav-item">
-              <Link className="nav-link" to="/">Home</Link>
+              <Link className="nav-link" to="/">{strings.header.home}</Link>
             </li>
             {token && !loading && (
               <>
               <li className="nav-item">
-                  <Link className="nav-link" to="/my">History</Link>
+                  <Link className="nav-link" to="/my">{strings.header.history}</Link>
                 </li>
               {user?.group === 'admin' && (
                 <li className="nav-item">
-                  <Link className="nav-link" to="/dashboard">Dashboard</Link>
+                  <Link className="nav-link" to="/dashboard">{strings.header.dashboard}</Link>
                 </li>
                 )}
                 {user?.group === 'admin' && (
                   <li className="nav-item">
-                    <Link className="nav-link" to="/files">Files</Link>
+                    <Link className="nav-link" to="/files">{strings.header.files}</Link>
                   </li>
                 )}
               </>
@@ -69,12 +69,12 @@ const Header: React.FC = () => {
           <ul className="navbar-nav">
             {!token ? (
               <li className="nav-item">
-                <Link className="btn btn-outline-primary" to="/login">Auth</Link>
+                <Link className="btn btn-outline-primary" to="/login">{strings.header.auth}</Link>
               </li>
             ) : (
               <li className="nav-item">
                 <button className="btn btn-outline-danger" onClick={handleLogout}>
-                  Logout
+                {strings.header.logout}
                 </button>
               </li>
             )}

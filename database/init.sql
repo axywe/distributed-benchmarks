@@ -1,9 +1,7 @@
--- Удаление старых таблиц
 DROP TABLE IF EXISTS optimization_input_parameters;
 DROP TABLE IF EXISTS optimization_results;
 DROP TABLE IF EXISTS optimization_methods;
 
--- Таблица методов оптимизации (без изменений)
 CREATE TABLE optimization_methods (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
@@ -18,7 +16,6 @@ CREATE TABLE users (
     "group" TEXT
 );
 
--- Основная таблица результатов оптимизации
 CREATE TABLE optimization_results (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -37,22 +34,19 @@ CREATE TABLE optimization_results (
     best_result_f DOUBLE PRECISION NOT NULL
 );
 
--- Новая таблица: входные параметры, которые задаёт пользователь
 CREATE TABLE optimization_input_parameters (
     id SERIAL PRIMARY KEY,
     result_id TEXT NOT NULL REFERENCES optimization_results(result_id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    value_text TEXT,                -- сырое представление
-    value_numeric DOUBLE PRECISION,-- для числовых полей
-    type TEXT NOT NULL,             -- "int", "float", "string", "bool"
+    value_text TEXT,
+    value_numeric DOUBLE PRECISION,
+    type TEXT NOT NULL,
     CONSTRAINT uq_input_param UNIQUE (result_id, name)
 );
 
--- Индексы для ускорения поиска по входным параметрам
 CREATE INDEX idx_input_param_result ON optimization_input_parameters(result_id);
 CREATE INDEX idx_input_param_name_num ON optimization_input_parameters(name, value_numeric);
 
--- Пример вставки метода PSO
 INSERT INTO optimization_methods (name, parameters) VALUES (
   'algorithms.pso',
   '{
@@ -72,3 +66,19 @@ INSERT INTO optimization_methods (name, parameters) VALUES (
   'algorithms.test',
   '{}'
 );
+
+-- INSERT INTO optimization_methods (name, parameters) VALUES (
+--   'algorithms.bayes_opt',
+--   '{
+--     "seed": { "type": "int", "default": 0 },
+--     "verbose": { "type": "int", "default": 0 },
+--     "init_points": { "type": "int", "default": 5 },
+--     "n_iter": { "type": "int", "default": 25 },
+--     "acq": { "type": "string", "default": "ei" },
+--     "kappa": { "type": "float", "default": 2.576 },
+--     "xi": { "type": "float", "default": 0.0 },
+--     "nu": { "type": "float", "default": 2.5 },
+--     "init_x": { "type": "string", "default": null, "nullable": true },
+--     "init_f": { "type": "string", "default": null, "nullable": true }
+--   }'
+-- );

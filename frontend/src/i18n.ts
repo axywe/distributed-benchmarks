@@ -8,14 +8,20 @@ const strings = {
       register_submitting: "Registering…",
       register_failed: "Registration failed"
     },
+
+    header: {
+        title: "Boela",
+        home: "Home",
+        history: "History",
+        dashboard: "Dashboard",
+        files: "Files",
+        logout: "Logout",
+        auth: "Auth",
+    },
   
     home: {
       title: "Optimization Form",
-      dimension: "Dimension",
-      instance_id: "Instance ID",
-      n_iter: "Number of Iterations",
-      seed: "Random Seed",
-      algorithm: "Algorithm",
+      algorithm: "algorithm",
       submit: "Submit",
       submitting: "Submitting…",
       cached_results_title: "These results already exist",
@@ -25,7 +31,8 @@ const strings = {
       view: "View",
       download_csv: "Download CSV",
       close: "Close",
-      run_anyway: "Run anyway"
+      run_anyway: "Run anyway",
+      methods_load_error: "Error loading methods",
     },
   
     resultsHistory: {
@@ -46,6 +53,7 @@ const strings = {
     },
   
     submitResult: {
+      job_id: "Optimization Job ID: ",
       not_specified: "not specified",
       container_logs: "Container Logs",
       back: "Back to Home",
@@ -56,17 +64,29 @@ const strings = {
     },
   
     resultDetails: {
+      title: "Result Details",
+      algorithm: "Algorithm",
+      budget: "Budget",
+      parameters: "Parameters",
+      best_result: "Best Result",
+      result_id: "Result ID: ",
       error_loading: "Error loading result.",
       request_error_prefix: "Request error: ",
       server_unsuccessful: "Server returned unsuccessful response",
+      file_loading_error: "Error loading file",
       back: "Back to Home",
-      spinner: "Loading…"
+      spinner: "Loading…",
+      formatted_view: "Formatted View",
+      raw_view: "Show Raw JSON",
+      download: "Download CSV",
+      downloading: "Downloading…",
     },
   
     dashboard: {
       management_title: "Manage Algorithms",
       add_button: "Add Algorithm",
       delete_confirm: "Delete method?",
+      spinner: "Loading…",
       table: {
         id: "ID",
         name: "Name",
@@ -118,7 +138,8 @@ const strings = {
       error_create_folder: "Failed to create folder: ",
       error_upload_file: "Error uploading file: ",
       error_download: "Error downloading: ",
-      error_delete: "Error deleting: "
+      error_delete: "Error deleting: ",
+      folder_emoji: "📁",
     },
   
     exit: {

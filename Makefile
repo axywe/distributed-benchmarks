@@ -19,18 +19,6 @@ docker:
 	docker run -d --name $$CONTAINER_NAME --label group=boela -v $(shell pwd)/$(HOST_RESULTS_DIR)/$$UNIQUE_TAG:/results $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG && \
 	echo "$$CONTAINER_NAME"
 
-db-up: db-clean
-	@echo "Starting PostgreSQL database..."
-	docker build -t $(DB_IMAGE) -f $(DB_DOCKERFILE) $(DB_DIR)
-	docker run --env-file $(ENV) -d --name $(DB_CONTAINER) -p 5432:5432 $(DB_IMAGE)
-	@echo "PostgreSQL database started on port 5432."
-
-db-clean:
-	@echo "Stopping and removing PostgreSQL database..."
-	docker rm -f $(DB_CONTAINER) || true
-	docker rmi -f $(DB_IMAGE) || true
-	@echo "PostgreSQL database removed."
-
 clean:
 	@echo "Stopping and removing all containers with prefix $(CONTAINER_NAME_PREFIX)..."
 	docker ps -a --filter "name=$(CONTAINER_NAME_PREFIX)" --format "{{.ID}}" | xargs -r docker rm -f

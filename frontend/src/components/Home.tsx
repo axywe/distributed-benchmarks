@@ -39,7 +39,7 @@ const Home: React.FC = () => {
         if (json.success && Array.isArray(json.data)) setMethods(json.data);
         else setMethods([]);
       })
-      .catch(err => alert('Ошибка загрузки методов: ' + err));
+      .catch(err => alert(strings.home.methods_load_error + err));
   }, []);
 
   useEffect(() => {
@@ -113,7 +113,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <h1 className="mb-4">Optimization Form</h1>
+      <h1 className="mb-4">{strings.home.title}</h1>
       <form onSubmit={handleSubmit}>
         <div className="row g-3">
           {}
@@ -132,7 +132,7 @@ const Home: React.FC = () => {
 
           {}
           <div className="col-md-3">
-            <label className="form-label">algorithm</label>
+            <label className="form-label">{strings.home.algorithm}</label>
             <select
               className="form-select"
               name="algorithm"
@@ -164,7 +164,7 @@ const Home: React.FC = () => {
 
         <div className="mt-4">
           <button className="btn btn-primary" type="submit" disabled={loading}>
-            {loading ? 'Sending…' : 'Send'}
+            {loading ? strings.home.submitting : strings.home.submit}
           </button>
         </div>
       </form>
@@ -175,18 +175,18 @@ const Home: React.FC = () => {
           <div className="modal-dialog" role="document">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">These results already exist</h5>
+                <h5 className="modal-title">{strings.home.cached_results_title}</h5>
                 <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
               </div>
               <div className="modal-body">
                 {cachedMatches.map(res => (
                   <div key={res.result_id} className="border rounded p-2 mb-2">
-                    <p><strong>ID:</strong> {res.result_id}</p>
+                    <p><strong>{strings.home.cached_id}</strong> {res.result_id}</p>
                     <p>
                       <strong>{res.algorithm_name} v{res.algorithm_version}</strong><br/>
-                      Expected / Actual: {res.expected_budget} / {res.actual_budget}
+                      {strings.home.expected_actual}{res.expected_budget} / {res.actual_budget}
                     </p>
-                    <h6>Best result:</h6>
+                    <h6>{strings.home.best_result}</h6>
                     <ul>
                       {Object.entries(res.best_result).map(([k,v]) =>
                         <li key={k}>{k}: {v.toFixed(6)}</li>
@@ -195,11 +195,11 @@ const Home: React.FC = () => {
                     <div className="d-flex gap-2">
                       <button className="btn btn-info btn-sm"
                               onClick={()=>handleGoToResult(res.result_id)}>
-                        View
+                        {strings.home.view}
                       </button>
                       <button className="btn btn-success btn-sm"
                               onClick={()=>handleDownloadCsv(res.result_id)}>
-                        Download CSV
+                        {strings.home.download_csv}
                       </button>
                     </div>
                   </div>
@@ -207,10 +207,10 @@ const Home: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={()=>setShowModal(false)}>
-                  Close
+                  {strings.home.close}
                 </button>
                 <button className="btn btn-danger" onClick={handleForceRun}>
-                Run anyway
+                {strings.home.run_anyway}
                 </button>
               </div>
             </div>

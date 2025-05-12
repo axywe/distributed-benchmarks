@@ -34,7 +34,6 @@ func Init() error {
 	return nil
 }
 
-// SaveSession сохраняет сессионный токен в Redis с TTL
 func SaveSession(token string, userID int, ttl time.Duration) error {
 	key := "session:" + token
 	err := client.Set(ctx, key, userID, ttl).Err()
@@ -44,7 +43,6 @@ func SaveSession(token string, userID int, ttl time.Duration) error {
 	return nil
 }
 
-// GetUserIDByToken возвращает userID по токену
 func GetUserIDByToken(rawToken string) (int, error) {
 	token := strings.TrimPrefix(rawToken, "Bearer ")
 	key := "session:" + token
@@ -64,7 +62,6 @@ func GetUserIDByToken(rawToken string) (int, error) {
 	return id, nil
 }
 
-// DeleteSession удаляет токен из Redis
 func DeleteSession(token string) error {
 	key := "session:" + token
 	return client.Del(ctx, key).Err()

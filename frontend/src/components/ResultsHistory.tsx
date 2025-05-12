@@ -61,7 +61,7 @@ const ResultsHistory: React.FC = () => {
         const json = (await res.json()) as ApiResponse<OptimizationResult[]>;
         setResults(Array.isArray(json.data) ? json.data : []);
       } catch (e: any) {
-        setError(e.message || 'History loading error.');
+        setError(e.message || strings.resultsHistory.error);
       } finally {
         setLoading(false);
       }
@@ -71,9 +71,9 @@ const ResultsHistory: React.FC = () => {
 
   return (
     <div className="container mt-4">
-      <h2>History</h2>
+      <h2>{strings.resultsHistory.title}</h2>
 
-      {loading && <p>Loading…</p>}
+      {loading && <p>{strings.resultsHistory.loading}</p>}
       {error && <div className="alert alert-danger">{error}</div>}
 
       {!loading && !error && (
@@ -81,10 +81,10 @@ const ResultsHistory: React.FC = () => {
           <table className="table table-sm table-striped">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Algorithm</th>
-                <th>Budget</th>
-                <th>Action</th>
+                <th>{strings.resultsHistory.table.id}</th>
+                <th>{strings.resultsHistory.table.algorithm}</th>
+                <th>{strings.resultsHistory.table.budget}</th>
+                <th>{strings.resultsHistory.table.action}</th>
               </tr>
             </thead>
             <tbody>
@@ -102,7 +102,7 @@ const ResultsHistory: React.FC = () => {
                       to={`/results/${r.result_id}`}
                       className="btn btn-sm btn-primary"
                     >
-                    Details
+                    {strings.resultsHistory.details}
                     </Link>
                   </td>
                 </tr>
@@ -110,7 +110,7 @@ const ResultsHistory: React.FC = () => {
               {results.length === 0 && (
                 <tr>
                   <td colSpan={4} className="text-center text-muted">
-                    There are no results yet.
+                  {strings.resultsHistory.table.no_requests}
                   </td>
                 </tr>
               )}
@@ -123,15 +123,15 @@ const ResultsHistory: React.FC = () => {
               onClick={() => setPage(p => Math.max(p - 1, 0))}
               disabled={page === 0}
             >
-              ← Back
+              {strings.resultsHistory.prev}
             </button>
-            <span>Page {page + 1}</span>
+            <span>{strings.resultsHistory.page} {page + 1}</span>
             <button
               className="btn btn-outline-secondary btn-sm"
               onClick={() => setPage(p => p + 1)}
               disabled={results.length < limit}
             >
-              Forward →
+              {strings.resultsHistory.next}
             </button>
           </div>
         </>

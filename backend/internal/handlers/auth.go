@@ -106,20 +106,17 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверка уникальности логина
 	if existing, _ := db.FindUserByLogin(req.Login); existing != nil {
 		helpers.WriteErrorResponse(w, "Пользователь с таким логином уже существует", http.StatusConflict)
 		return
 	}
 
-	// Создание пользователя
 	id, err := db.CreateUser(req.Login, req.Password, req.Group)
 	if err != nil {
 		helpers.WriteErrorResponse(w, "Ошибка создания пользователя: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Генерация сессионного токена
 	sessionToken := uuid.New().String()
 	err = sessions.SaveSession(sessionToken, id, 24*time.Hour)
 	if err != nil {

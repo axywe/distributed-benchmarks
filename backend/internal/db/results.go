@@ -9,7 +9,6 @@ import (
 	"github.com/lib/pq"
 )
 
-// OptimizationResult описывает результат и динамические входные параметры.
 type OptimizationResult struct {
 	UserID           int                    `json:"user_id"`
 	AlgorithmName    string                 `json:"algorithm_name"`
@@ -21,8 +20,6 @@ type OptimizationResult struct {
 	ResultID         string                 `json:"result_id"`
 }
 
-// InsertOptimizationResult сохраняет результат в optimization_results
-// и все ключи из Parameters — в optimization_input_parameters.
 func InsertOptimizationResult(or OptimizationResult) error {
 	tx, err := DB.Begin()
 	if err != nil {
@@ -30,7 +27,6 @@ func InsertOptimizationResult(or OptimizationResult) error {
 	}
 	defer tx.Rollback()
 
-	// 0. Получаем method_id = algorithm
 	rawAlgo, ok := or.Parameters["algorithm"]
 	if !ok {
 		return fmt.Errorf("отсутствует параметр 'algorithm'")
@@ -41,7 +37,6 @@ func InsertOptimizationResult(or OptimizationResult) error {
 	}
 	methodID := int(algoFloat)
 
-	// 1. Извлекаем обязательные параметры
 	intParams := []string{"dimension", "instance_id", "n_iter", "seed"}
 	values := make(map[string]int)
 	for _, name := range intParams {
@@ -63,7 +58,6 @@ func InsertOptimizationResult(or OptimizationResult) error {
 		userIDParam = nil
 	}
 
-	// 2. Вставляем сам результат
 	_, err = tx.Exec(`
 INSERT INTO optimization_results
   (user_id, result_id, method_id, algorithm_name, algorithm_version,
@@ -90,7 +84,6 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 		return fmt.Errorf("insert optimization_results: %v", err)
 	}
 
-	// 3. Вставляем все параметры в optimization_input_parameters
 	for name, val := range or.Parameters {
 		var txt string
 		var num sql.NullFloat64

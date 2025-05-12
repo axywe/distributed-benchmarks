@@ -20,12 +20,12 @@ const ResultDetails: React.FC = () => {
     const fetchResult = async () => {
       try {
         const response = await fetch(`/api/v1/optimization/results/${resultID}`);
-        if (!response.ok) throw new Error(`Ошибка запроса: ${response.statusText}`);
+        if (!response.ok) throw new Error(`${strings.resultDetails.request_error_prefix}${response.statusText}`);
         const json: OptimizationAPIResponse = await response.json();
-        if (!json.success) throw new Error('Сервер вернул неуспешный ответ');
+        if (!json.success) throw new Error(strings.resultDetails.server_unsuccessful);
         setResult(json.data);
       } catch (err: any) {
-        setError(err.message || 'Ошибка загрузки результата.');
+        setError(err.message || strings.resultDetails.error_loading);
       }
     };
     fetchResult();
@@ -35,7 +35,7 @@ const ResultDetails: React.FC = () => {
     setDownloading(true);
     try {
       const response = await fetch(`/api/v1/optimization/results/${resultID}/download`);
-      if (!response.ok) throw new Error(`Ошибка загрузки файла: ${response.statusText}`);
+      if (!response.ok) throw new Error(`${strings.resultDetails.file_loading_error}: ${response.statusText}`);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -46,7 +46,7 @@ const ResultDetails: React.FC = () => {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      alert(err.message || 'Ошибка загрузки файла.');
+      alert(err.message || strings.resultDetails.file_loading_error);
     } finally {
       setDownloading(false);
     }
@@ -62,7 +62,7 @@ const ResultDetails: React.FC = () => {
     return (
       <div className="container mt-4">
         <div className="alert alert-danger">{error}</div>
-        <Link to="/" className="btn btn-secondary">На главную</Link>
+        <Link to="/" className="btn btn-secondary">{strings.resultDetails.back}</Link>
       </div>
     );
   }
@@ -71,7 +71,7 @@ const ResultDetails: React.FC = () => {
     return (
       <div className="container mt-4 text-center">
         <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Загрузка...</span>
+          <span className="visually-hidden">{strings.resultDetails.spinner}</span>
         </div>
       </div>
     );
@@ -80,12 +80,12 @@ const ResultDetails: React.FC = () => {
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h1>Result ID: {resultID!.toUpperCase()}</h1>
+        <h1>{strings.resultDetails.result_id}{resultID!.toUpperCase()}</h1>
         <button
           className="btn btn-outline-secondary"
           onClick={() => setShowRaw(raw => !raw)}
         >
-          {showRaw ? 'Formatted View' : 'Show Raw JSON'}
+          {showRaw ? strings.resultDetails.formatted_view : strings.resultDetails.raw_view}
         </button>
       </div>
 
@@ -97,15 +97,15 @@ const ResultDetails: React.FC = () => {
         <>
           <div className="card mb-4">
             <div className="card-body">
-              <h5 className="card-title">General Information</h5>
-              <p><strong>Algorithm:</strong> {result.algorithm_name} v{result.algorithm_version}</p>
-              <p><strong>Budget:</strong> {result.expected_budget} / {result.actual_budget}</p>
+              <h5 className="card-title">{strings.resultDetails.title}</h5>
+              <p><strong>{strings.resultDetails.algorithm}</strong> {result.algorithm_name} v{result.algorithm_version}</p>
+              <p><strong>{strings.resultDetails.budget}</strong> {result.expected_budget} / {result.actual_budget}</p>
             </div>
           </div>
 
           <div className="card mb-4">
             <div className="card-body">
-              <h5 className="card-title">Parameters</h5>
+              <h5 className="card-title">{strings.resultDetails.parameters}</h5>
               <ul className="list-group list-group-flush">
                 {Object.entries(result.parameters).map(([key, val]) => (
                   <li key={key} className="list-group-item">
@@ -118,7 +118,7 @@ const ResultDetails: React.FC = () => {
 
           <div className="card mb-4">
             <div className="card-body">
-              <h5 className="card-title">Best Result</h5>
+              <h5 className="card-title">{strings.resultDetails.best_result}</h5>
               <ul className="list-group list-group-flush">
                 {Object.entries(result.best_result).map(([key, val]) => (
                   <li key={key} className="list-group-item">
@@ -137,9 +137,9 @@ const ResultDetails: React.FC = () => {
           onClick={handleDownload}
           disabled={downloading}
         >
-          {downloading ? 'Downloading...' : 'Download CSV'}
+          {downloading ? strings.resultDetails.downloading : strings.resultDetails.download}
         </button>
-        <Link to="/" className="btn btn-outline-secondary">Back to Home</Link>
+        <Link to="/" className="btn btn-outline-secondary">{strings.resultDetails.back}</Link>
       </div>
     </div>
   );

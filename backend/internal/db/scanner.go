@@ -11,13 +11,11 @@ import (
 	"time"
 )
 
-// ScanResultsFolder обходит каталог, находит results.json и пушит их в БД.
 func ScanResultsFolder(resultsDir string) error {
 	return filepath.WalkDir(resultsDir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		// пропускаем уже обработанные папки
 		if d.IsDir() && strings.HasSuffix(d.Name(), ".processed") {
 			return filepath.SkipDir
 		}
@@ -50,7 +48,6 @@ func ScanResultsFolder(resultsDir string) error {
 	})
 }
 
-// StartCronTask запускает ScanResultsFolder каждые interval.
 func StartCronTask(resultsDir string, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	go func() {

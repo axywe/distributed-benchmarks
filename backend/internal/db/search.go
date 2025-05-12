@@ -1,4 +1,3 @@
-// db/search.go
 package db
 
 import (
@@ -9,10 +8,7 @@ import (
 	"github.com/lib/pq"
 )
 
-// SearchOptimizationResults ищет все result_id, у которых динамические параметры попадают ±10% (числа)
-// или точно совпадают (строки), а затем для каждого возвращает полный OptimizationResult.
 func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationResult, error) {
-	// Построим CTE + INTERSECT, чтобы получить список подходящих result_id
 	var cteBlocks []string
 	var intersectParts []string
 	var args []interface{}
@@ -43,7 +39,6 @@ func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationRes
 			args = append(args, v)
 			idx++
 		default:
-			// пропускаем все прочие типы
 			continue
 		}
 
@@ -55,7 +50,6 @@ func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationRes
 
 	var resultIDs []string
 	if paramCount == 0 {
-		// без фильтров — сразу все ID
 		rows, err := DB.Query(`SELECT result_id FROM optimization_results`)
 		if err != nil {
 			return nil, err
@@ -69,7 +63,6 @@ func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationRes
 			resultIDs = append(resultIDs, id)
 		}
 	} else {
-		// CTE + INTERSECT
 		cte := "WITH " + strings.Join(cteBlocks, ", ") + ", ids AS (" +
 			strings.Join(intersectParts, " INTERSECT ") +
 			") SELECT result_id FROM ids"
@@ -88,7 +81,6 @@ func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationRes
 		}
 	}
 
-	// Для каждого найденного ID грузим полный OptimizationResult
 	var results []OptimizationResult
 	for _, id := range resultIDs {
 		or, err := LoadOptimizationResult(id)
@@ -100,13 +92,11 @@ func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationRes
 	return results, nil
 }
 
-// LoadOptimizationResult читает из двух таблиц весь объём данных для данного result_id.
 func LoadOptimizationResult(resultID string) (OptimizationResult, error) {
 	var or OptimizationResult
 	or.ResultID = resultID
 	or.Parameters = make(map[string]interface{})
 
-	// 1) Сначала базовые поля из optimization_results
 	var bestX []float64
 	var bestF float64
 
@@ -138,7 +128,6 @@ WHERE result_id = $1
 	}
 	or.BestResult["f[1]"] = bestF
 
-	// 2) Теперь все входные параметры из optimization_input_parameters
 	rows, err := DB.Query(`
 SELECT name, value_text, value_numeric, type
 FROM optimization_input_parameters
@@ -173,7 +162,6 @@ WHERE result_id = $1
 		case "bool":
 			or.Parameters[name] = (valueText == "true")
 		default:
-			// string и всё прочее
 			or.Parameters[name] = valueText
 		}
 	}

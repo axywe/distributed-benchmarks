@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -26,20 +27,24 @@ func main() {
 		log.Fatalf("Ошибка подключения к Redis: %v", err)
 	}
 
-	// Инициализация подключения к базе данных
-	connStr := "postgresql://boela_user:boela_password@localhost:5432/boela_db?sslmode=disable"
+	postgresUser := os.Getenv("POSTGRES_USER")
+	postgresPassword := os.Getenv("POSTGRES_PASSWORD")
+	postgresDB := os.Getenv("POSTGRES_DB")
+	postgresHost := os.Getenv("POSTGRES_HOST")
+	postgresPort := os.Getenv("POSTGRES_PORT")
+	connStr := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+		postgresUser, postgresPassword, postgresHost, postgresPort, postgresDB,
+	)
 	if err := db.InitDB(connStr); err != nil {
 		log.Fatalf("Ошибка подключения к БД: %v", err)
 	}
 
-	// Запуск cron-задачи для сканирования каталога с результатами
 	resultsDir := "results"
 	db.StartCronTask(resultsDir, time.Minute/6)
 
-	// Создание роутера
 	r := router.NewRouter()
 
-	// Включение CORS с разрешением всех источников (можно настроить конкретные)
 	corsHandler := handlers.CORS(
 		handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
@@ -51,7 +56,6 @@ func main() {
 		Handler: corsHandler(r),
 	}
 
-	// Обработка сигналов завершения работы сервера
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM)
 

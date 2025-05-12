@@ -5,14 +5,12 @@ import (
 	"fmt"
 )
 
-// OptimizationMethodParam описывает один параметр метода.
 type OptimizationMethodParam struct {
-	Type     string      `json:"type"`               // "int", "float", "string"
-	Default  interface{} `json:"default"`            // значение по умолчанию
-	Nullable bool        `json:"nullable,omitempty"` // допускается null
+	Type     string      `json:"type"`
+	Default  interface{} `json:"default"`
+	Nullable bool        `json:"nullable,omitempty"`
 }
 
-// OptimizationMethod описывает метод оптимизации.
 type OptimizationMethod struct {
 	ID         int                                `json:"id"`
 	Name       string                             `json:"name"`
@@ -20,7 +18,6 @@ type OptimizationMethod struct {
 	FilePath   string                             `json:"file_path"`
 }
 
-// GetAllOptimizationMethods возвращает все методы из БД.
 func GetAllOptimizationMethods() ([]OptimizationMethod, error) {
 	rows, err := DB.Query(`SELECT id, name, parameters, file_path FROM optimization_methods`)
 	if err != nil {
@@ -43,7 +40,6 @@ func GetAllOptimizationMethods() ([]OptimizationMethod, error) {
 	return methods, nil
 }
 
-// GetOptimizationMethodByID получает один метод по его ID.
 func GetOptimizationMethodByID(id int) (*OptimizationMethod, error) {
 	row := DB.QueryRow(`SELECT id, name, parameters, file_path FROM optimization_methods WHERE id=$1`, id)
 	var m OptimizationMethod
@@ -57,7 +53,6 @@ func GetOptimizationMethodByID(id int) (*OptimizationMethod, error) {
 	return &m, nil
 }
 
-// InsertOptimizationMethod добавляет новый метод в БД и возвращает его ID.
 func InsertOptimizationMethod(
 	name string,
 	params map[string]OptimizationMethodParam,
@@ -79,7 +74,6 @@ func InsertOptimizationMethod(
 	return id, nil
 }
 
-// DeleteOptimizationMethodByID удаляет метод по его ID.
 func DeleteOptimizationMethodByID(id int) error {
 	_, err := DB.Exec(`DELETE FROM optimization_methods WHERE id = $1`, id)
 	if err != nil {
