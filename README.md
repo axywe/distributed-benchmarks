@@ -7,7 +7,7 @@
 * `backend/` — Go server providing the API and integration with Docker and PostgreSQL.
 * `frontend/` — React-based web frontend for users and administrators.
 * `bench/` — Dockerfile and utilities for building and running optimization containers.
-* `database/` — Initialization scripts and Dockerfile for PostgreSQL database.
+* `database/` — Initialization scripts for PostgreSQL database.
 * `results/` — Directory for saving benchmark outputs (e.g., `results.json`, `results.csv`).
 * `.env` — Environment variables configuration.
 
