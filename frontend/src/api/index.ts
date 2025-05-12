@@ -1,64 +1,67 @@
 const BASE_URL = '/api/v1';
 
-export interface APIResponse<T> {
-  success: boolean;
-  data: T;
-  meta: {
-    [key: string]: any;
-  };
-}
-
 export interface OptimizationParameters {
-  dimension: number;
-  instance_id: number;
-  n_iter: number;
-  algorithm: number;
-  seed: number;
-  n_particles: number;
-  inertia_start: number;
-  inertia_end: number;
-  nostalgia: number;
-  societal: number;
-  topology: string;
-  tol_thres: number | null;
-  tol_win: number;
+  [key: string]: any;
 }
 
 export interface OptimizationResult {
+  result_id: string;
   algorithm_name: string;
   algorithm_version: string;
-  parameters: OptimizationParameters;
+  parameters: Record<string, any>;
   expected_budget: number;
   actual_budget: number;
-  best_result: {
-    [key: string]: number;
-  };
+  best_result: Record<string, number>;
 }
 
-// POST /api/v1/optimization
+export interface SubmitOptimizationResponse {
+  success: boolean;
+  data: {
+    cached: boolean;
+    matches?: OptimizationResult[];
+    container_name?: string;
+  };
+  meta?: any;
+}
+export interface User {
+  id: number;
+  login: string;
+  password: string;
+  group: string;
+}
+
 export async function submitOptimization(
   params: OptimizationParameters
-): Promise<OptimizationResult> {
-  const response = await fetch(`${BASE_URL}/optimization`, {
+): Promise<SubmitOptimizationResponse['data']> {
+  const token = localStorage.getItem('authToken');
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+  const res = await fetch(`${BASE_URL}/optimization`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(params)
+    headers: headers,
+    body: JSON.stringify(params),
   });
-  const json: APIResponse<OptimizationResult> = await response.json();
+  const json: SubmitOptimizationResponse = await res.json();
   if (!json.success) {
-    throw new Error(json.meta.message || 'Optimization submission failed');
+    throw new Error(json.meta?.message || 'Submit failed');
   }
   return json.data;
 }
 
-// GET /api/v1/optimization/results/{id}
-export async function getResultDetails(resultID: string): Promise<OptimizationResult> {
-  const response = await fetch(`${BASE_URL}/optimization/results/${resultID}`);
-  const json: APIResponse<OptimizationResult> = await response.json();
-  if (!json.success) {
-    throw new Error(json.meta.message || 'Result not found');
+export async function getCurrentUser(): Promise<User> {
+  const token = localStorage.getItem('authToken');
+  const res = await fetch('/api/v1/user', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  if (!res.ok) {
+    throw new Error('Unauthorized');
   }
+
+  const json = await res.json();
   return json.data;
 }
+
