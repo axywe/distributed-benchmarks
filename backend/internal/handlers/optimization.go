@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -23,7 +24,6 @@ import (
 type OptimizationRequest struct {
 	Dimension  int `json:"dimension"`
 	InstanceID int `json:"instance_id"`
-	NIter      int `json:"n_iter"`
 	Algorithm  int `json:"algorithm"`
 	Seed       int `json:"seed"`
 }
@@ -264,6 +264,64 @@ func OptimizationResultsHandler(w http.ResponseWriter, r *http.Request) {
 	results, err := db.GetOptimizationResults(limit, offset, userId)
 	if err != nil {
 		helpers.WriteErrorResponse(w, "Ошибка получения результатов: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	helpers.WriteJSONResponse(w, results, http.StatusOK)
+}
+
+// GET /api/v1/optimization/search
+func SearchOptimizationResultsHandler(w http.ResponseWriter, r *http.Request) {
+	qs := r.URL.Query()
+	params := make(map[string]interface{})
+
+	for k, vs := range qs {
+		if len(vs) == 0 {
+			continue
+		}
+		raw := vs[0]
+		// split on semicolons
+		tokens := strings.Split(raw, ";")
+		var ranges []db.NumericRange
+		var texts []string
+
+		for _, tok := range tokens {
+			tok = strings.TrimSpace(tok)
+			if tok == "" {
+				continue
+			}
+			if parts := strings.SplitN(tok, "-", 2); len(parts) == 2 {
+				// a range
+				if lo, err1 := strconv.ParseFloat(parts[0], 64); err1 == nil {
+					if hi, err2 := strconv.ParseFloat(parts[1], 64); err2 == nil {
+						ranges = append(ranges, db.NumericRange{Min: lo, Max: hi})
+						continue
+					}
+				}
+			}
+			// not a range: try number
+			if f, err := strconv.ParseFloat(tok, 64); err == nil {
+				ranges = append(ranges, db.NumericRange{Min: f, Max: f})
+			} else {
+				texts = append(texts, tok)
+			}
+		}
+
+		switch {
+		case len(ranges) > 0 && len(texts) == 0:
+			params[k] = ranges
+		case len(texts) > 0 && len(ranges) == 0:
+			params[k] = texts
+		}
+	}
+
+	if _, ok := params["algorithm"]; !ok {
+		helpers.WriteErrorResponse(w, "Не указан параметр algorithm", http.StatusBadRequest)
+		return
+	}
+
+	results, err := db.SearchOptimizationResultsWithRange(params)
+	if err != nil {
+		helpers.WriteErrorResponse(w, "Ошибка поиска: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	helpers.WriteJSONResponse(w, results, http.StatusOK)

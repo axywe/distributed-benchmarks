@@ -10,13 +10,12 @@ import boela.optimizer  # type: ignore
 import boela.problems  # type: ignore
 
 
-def parse_known_args() -> (argparse.Namespace, Dict[str, Any]):
+def parse_known_args() -> (argparse.Namespace, Dict[str, Any]): # type: ignore
     parser = argparse.ArgumentParser(description="Run optimization using Boela")
 
     # Фиксированные параметры
     parser.add_argument("--dimension", type=int, default=2)
     parser.add_argument("--instance_id", type=int, default=0)
-    parser.add_argument("--n_iter", type=int, default=10)
     parser.add_argument("--method", type=str, required=True,
                         help="Full import path to algorithm, e.g. algorithms.pso or custom.test")
     parser.add_argument("--user_id", type=int)
@@ -89,12 +88,6 @@ def main():
 
     # Добавление параметров
     full_options = dynamic_args.copy()
-
-    # Специфичный параметр итераций — используем нужное имя
-    if "max_iterations" in algorithm.get_options():
-        full_options["max_iterations"] = args.n_iter
-    elif "n_iter" in algorithm.get_options():
-        full_options["n_iter"] = args.n_iter
 
     full_options.pop("algorithm", None)
     logging.info(f"Параметры алгоритма: {full_options}")

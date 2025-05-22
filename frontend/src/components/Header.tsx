@@ -48,6 +48,9 @@ const Header: React.FC = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/">{strings.header.home}</Link>
             </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/search">{strings.header.search}</Link>
+            </li>
             {token && !loading && (
               <>
               <li className="nav-item">

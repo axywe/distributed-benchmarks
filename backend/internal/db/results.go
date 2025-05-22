@@ -37,7 +37,7 @@ func InsertOptimizationResult(or OptimizationResult) error {
 	}
 	methodID := int(algoFloat)
 
-	intParams := []string{"dimension", "instance_id", "n_iter", "seed"}
+	intParams := []string{"dimension", "instance_id", "seed"}
 	values := make(map[string]int)
 	for _, name := range intParams {
 		raw, ok := or.Parameters[name]
@@ -61,9 +61,9 @@ func InsertOptimizationResult(or OptimizationResult) error {
 	_, err = tx.Exec(`
 INSERT INTO optimization_results
   (user_id, result_id, method_id, algorithm_name, algorithm_version,
-   dimension, instance_id, n_iter, algorithm, seed,
+   dimension, instance_id, algorithm, seed,
    expected_budget, actual_budget, best_result_x, best_result_f)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
 `,
 		userIDParam,
 		or.ResultID,
@@ -72,7 +72,6 @@ VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 		or.AlgorithmVersion,
 		values["dimension"],
 		values["instance_id"],
-		values["n_iter"],
 		methodID,
 		values["seed"],
 		or.ExpectedBudget,
