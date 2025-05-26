@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS optimization_input_parameters;
 DROP TABLE IF EXISTS optimization_results;
 DROP TABLE IF EXISTS optimization_methods;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE optimization_methods (
     id SERIAL PRIMARY KEY,
@@ -25,7 +26,6 @@ CREATE TABLE optimization_results (
     algorithm_version TEXT NOT NULL,
     dimension INTEGER NOT NULL,
     instance_id INTEGER NOT NULL,
-    n_iter INTEGER NOT NULL,
     algorithm INTEGER NOT NULL,
     seed INTEGER NOT NULL,
     expected_budget INTEGER NOT NULL,
@@ -50,6 +50,7 @@ CREATE INDEX idx_input_param_name_num ON optimization_input_parameters(name, val
 INSERT INTO optimization_methods (name, parameters) VALUES (
   'algorithms.pso',
   '{
+    "n_iter": { "type": "int", "default": 10 },
     "n_particles": { "type": "int", "default": 15 },
     "inertia_start": { "type": "float", "default": 0.9 },
     "inertia_end": { "type": "float", "default": 0.4 },

@@ -9,6 +9,7 @@ import Files from './components/Files';
 import Auth from './components/Auth';
 import ResultsHistory from './components/ResultsHistory';
 import Exit from './components/Exit';
+import Search from './components/Search';
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/submit-result" element={<SubmitResult />} />
         <Route path="/results/:resultID" element={<ResultDetails />} />
         <Route path="/dashboard" element={<Dashboard />} />

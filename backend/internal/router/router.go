@@ -24,6 +24,7 @@ func NewRouter() *mux.Router {
 	api.HandleFunc("/optimization/results/{id}", handlers.OptimizationResultHandler).Methods("GET")
 	api.HandleFunc("/optimization/results/{id}/download", handlers.OptimizationDownloadHandler).Methods("GET")
 	api.HandleFunc("/optimization/logs", handlers.ContainerLogsHandler).Methods("GET")
+	api.HandleFunc("/optimization/search", handlers.SearchOptimizationResultsHandler).Methods("GET")
 
 	api.HandleFunc("/methods", handlers.GetAllOptimizationMethodsHandler).Methods("GET")
 

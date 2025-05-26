@@ -8,6 +8,11 @@ import (
 	"github.com/lib/pq"
 )
 
+type NumericRange struct {
+	Min float64
+	Max float64
+}
+
 func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationResult, error) {
 	var cteBlocks []string
 	var intersectParts []string
@@ -50,7 +55,7 @@ func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationRes
 
 	var resultIDs []string
 	if paramCount == 0 {
-		rows, err := DB.Query(`SELECT result_id FROM optimization_results`)
+		rows, err := DB.Query(`SELECT result_id FROM optimization_results ORDER BY best_result_f`)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +70,7 @@ func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationRes
 	} else {
 		cte := "WITH " + strings.Join(cteBlocks, ", ") + ", ids AS (" +
 			strings.Join(intersectParts, " INTERSECT ") +
-			") SELECT result_id FROM ids"
+			") SELECT ids.result_id FROM ids JOIN optimization_results ON optimization_results.result_id = ids.result_id ORDER BY optimization_results.best_result_f"
 
 		rows, err := DB.Query(cte, args...)
 		if err != nil {
@@ -90,6 +95,130 @@ func SearchOptimizationResults(params map[string]interface{}) ([]OptimizationRes
 		results = append(results, or)
 	}
 	return results, nil
+}
+
+func SearchOptimizationResultsWithRange(params map[string]interface{}) ([]OptimizationResult, error) {
+    var cteBlocks []string
+    var intersectParts []string
+    var args []interface{}
+    idx := 1
+    paramCount := 0
+
+    for name, raw := range params {
+        var clause string
+
+        switch v := raw.(type) {
+
+        case []NumericRange:
+            // несколько диапазонов для одного параметра
+            var ors []string
+            for _, nr := range v {
+                ors = append(ors,
+                    fmt.Sprintf("value_numeric BETWEEN $%d AND $%d", idx, idx+1),
+                )
+                args = append(args, nr.Min, nr.Max)
+                idx += 2
+            }
+            clause = fmt.Sprintf(
+                "SELECT result_id FROM optimization_input_parameters "+
+                    "WHERE name = '%s' AND (%s)",
+                name, strings.Join(ors, " OR "),
+            )
+
+        case []string:
+            // несколько текстовых значений
+            var ph []string
+            for _, txt := range v {
+                ph = append(ph, fmt.Sprintf("$%d", idx))
+                args = append(args, txt)
+                idx++
+            }
+            clause = fmt.Sprintf(
+                "SELECT result_id FROM optimization_input_parameters "+
+                    "WHERE name = '%s' AND value_text IN (%s)",
+                name, strings.Join(ph, ","),
+            )
+
+        case int, float64:
+            // старый режим: единичное число ±10%
+            f := toFloat(v)
+            low := f * 0.9
+            high := f * 1.1
+            clause = fmt.Sprintf(
+                "SELECT result_id FROM optimization_input_parameters "+
+                    "WHERE name = '%s' AND value_numeric BETWEEN $%d AND $%d",
+                name, idx, idx+1,
+            )
+            args = append(args, low, high)
+            idx += 2
+
+        case string:
+            // старый режим: точное текстовое совпадение
+            clause = fmt.Sprintf(
+                "SELECT result_id FROM optimization_input_parameters "+
+                    "WHERE name = '%s' AND value_text = $%d",
+                name, idx,
+            )
+            args = append(args, v)
+            idx++
+
+        default:
+            // пропускаем
+            continue
+        }
+
+        paramCount++
+        cteName := fmt.Sprintf("p%d", paramCount)
+        cteBlocks = append(cteBlocks, fmt.Sprintf("%s AS (%s)", cteName, clause))
+        intersectParts = append(intersectParts, fmt.Sprintf("SELECT result_id FROM %s", cteName))
+    }
+
+    var resultIDs []string
+    if paramCount == 0 {
+        // без фильтров — все, отсортированные
+        rows, err := DB.Query(`SELECT result_id FROM optimization_results ORDER BY best_result_f`)
+        if err != nil {
+            return nil, err
+        }
+        defer rows.Close()
+        for rows.Next() {
+            var id string
+            if err := rows.Scan(&id); err != nil {
+                return nil, err
+            }
+            resultIDs = append(resultIDs, id)
+        }
+    } else {
+        // пересечение всех CTE
+        cte := "WITH " + strings.Join(cteBlocks, ", ") + ", ids AS (" +
+            strings.Join(intersectParts, " INTERSECT ") +
+            ") SELECT ids.result_id FROM ids "+
+            "JOIN optimization_results ON optimization_results.result_id = ids.result_id "+
+            "ORDER BY optimization_results.best_result_f"
+
+        rows, err := DB.Query(cte, args...)
+        if err != nil {
+            return nil, fmt.Errorf("search query: %v", err)
+        }
+        defer rows.Close()
+        for rows.Next() {
+            var id string
+            if err := rows.Scan(&id); err != nil {
+                return nil, err
+            }
+            resultIDs = append(resultIDs, id)
+        }
+    }
+
+    var results []OptimizationResult
+    for _, id := range resultIDs {
+        or, err := LoadOptimizationResult(id)
+        if err != nil {
+            return nil, err
+        }
+        results = append(results, or)
+    }
+    return results, nil
 }
 
 func LoadOptimizationResult(resultID string) (OptimizationResult, error) {

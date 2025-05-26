@@ -3,7 +3,7 @@ package handlers
 import "fmt"
 
 func ValidateCoreFields(m map[string]interface{}) error {
-	required := []string{"dimension", "instance_id", "n_iter", "seed"}
+	required := []string{"dimension", "instance_id", "seed"}
 	for _, key := range required {
 		val, ok := m[key]
 		if !ok {
@@ -17,7 +17,7 @@ func ValidateCoreFields(m map[string]interface{}) error {
 		if num < 0 {
 			return fmt.Errorf("параметр %s должен быть неотрицательным", key)
 		}
-		if (key == "dimension" || key == "n_iter") && num <= 0 {
+		if (key == "dimension") && num <= 0 {
 			return fmt.Errorf("параметр %s должен быть > 0", key)
 		}
 	}
