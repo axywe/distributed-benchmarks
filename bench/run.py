@@ -8,6 +8,7 @@ from typing import Dict, Any
 
 import boela.optimizer  # type: ignore
 import boela.problems  # type: ignore
+import boela.problems.bbob  # type: ignore
 
 
 def parse_known_args() -> (argparse.Namespace, Dict[str, Any]): # type: ignore
@@ -19,6 +20,8 @@ def parse_known_args() -> (argparse.Namespace, Dict[str, Any]): # type: ignore
     parser.add_argument("--method", type=str, required=True,
                         help="Full import path to algorithm, e.g. algorithms.pso or custom.test")
     parser.add_argument("--user_id", type=int)
+    parser.add_argument("--problem",     type=str, default="rosenbrock",
+                        help="bbob problem name, e.g. sphere, rastrigin, rosenbrock")
 
     # Остальные аргументы — динамические
     known_args, unknown = parser.parse_known_args()
@@ -76,10 +79,14 @@ def main():
     logging.info(f"Фиксированные аргументы: {args}")
     logging.info(f"Динамические аргументы: {dynamic_args}")
 
-    # Инициализация задачи
-    logging.info("Создание задачи Rosenbrock.")
-    problem_type = boela.problems.bbob.rosenbrock
-    problem = problem_type.Problem(dim_x=args.dimension, instance=args.instance_id)
+    try:
+        problem_mod = importlib.import_module(f"boela.problems.bbob.{args.problem}")
+        problem = problem_mod.Problem(dim_x=args.dimension,
+                                     instance=args.instance_id)
+        logging.info(f"Задача «{args.problem}» загружена.")
+    except Exception as e:
+        logging.error(f"Не удалось загрузить задачу «{args.problem}»: {e}")
+        return 1
 
     # Загрузка и инициализация алгоритма
     algorithm = load_algorithm(args.method)
@@ -123,9 +130,9 @@ def main():
         "best_result": best_result,
     }
 
-    with open("results.json", "w") as f:
+    with open("/results/results.json", "w") as f:
         json.dump(results, f, indent=4)
-    history.to_csv("results.csv", index=False)
+    history.to_csv("/results/results.csv", index=False)
 
     logging.info("Результаты сохранены.")
 

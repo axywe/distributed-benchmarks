@@ -1,7 +1,35 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Select, { GroupBase, OptionsOrGroups } from 'react-select';
 import { submitOptimization } from '../api';
 import strings from '../i18n';
+
+const BBOB_PROBLEMS = [
+  'attractive_sector',
+  'bent_cigar',
+  'bueche_rastrigin',
+  'different_powers',
+  'discus',
+  'ellipsoid',
+  'ellipsoid_rotated',
+  'gallagher101',
+  'gallagher21',
+  'griewank_rosenbrock',
+  'katsuura',
+  'linear_slope',
+  'lunacek_bi_rastrigin',
+  'rastrigin',
+  'rastrigin_rotated',
+  'rosenbrock',
+  'rosenbrock_rotated',
+  'schaffers10',
+  'schaffers1000',
+  'schwefel',
+  'sharp_ridge',
+  'sphere',
+  'step_ellipsoid',
+  'weierstrass',
+];
 
 interface MethodParam {
   type: 'int' | 'float' | 'string';
@@ -18,6 +46,7 @@ interface OptimizationMethod {
 
 interface Experiment {
   id: string;
+  problem: string;
   dimension: number;
   instance_id: number;
   algorithm: number;
@@ -25,6 +54,10 @@ interface Experiment {
   params: Record<string, any>;
   algorithmName: string;
 }
+
+type OptionType = { value: string; label: string };
+type ProblemGroup = GroupBase<OptionType>;
+
 
 const Home: React.FC = () => {
   const [methods, setMethods] = useState<OptimizationMethod[]>([]);
@@ -40,6 +73,8 @@ const Home: React.FC = () => {
 
   const [showCacheDetailModal, setShowCacheDetailModal] = useState(false);
   const [cacheDetailIndex, setCacheDetailIndex] = useState<number | null>(null);
+
+  const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
 
   const navigate = useNavigate();
 
@@ -73,6 +108,16 @@ const Home: React.FC = () => {
     }
   }, []);
 
+  const problemOptions: ProblemGroup[] = [
+    {
+      label: 'BBOB',
+      options: [
+        { value: 'bbob',    label: strings.home.bbob },
+        ...BBOB_PROBLEMS.map(name => ({ value: name, label: name })),
+      ],
+    }
+  ];
+
   const handleProblemChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProblem(prev => ({
@@ -100,21 +145,40 @@ const Home: React.FC = () => {
   };
 
   const handleAddExperiment = () => {
-    if (!selectedMethod) return;
-    const exp: Experiment = {
-      id: Date.now().toString(),
+    if (!selectedMethod || selectedProblems.length === 0) return;
+  
+    const toAdd = selectedProblems.includes('bbob')
+      ? BBOB_PROBLEMS
+      : selectedProblems;
+  
+    const newBatch: Experiment[] = toAdd.map(task => ({
+      id: `${Date.now()}-${task}`,
+      problem: task,
       dimension: problem.dimension,
       instance_id: problem.instance_id,
       algorithm: selectedMethod.id,
       seed,
       params: { ...algorithmParams },
       algorithmName: selectedMethod.name
-    };
-    setExperiments(prev => [...prev, exp]);
+    }));
+  
+    setExperiments(prev => [...prev, ...newBatch]);
   };
+  
 
   const handleRemoveExperiment = (id: string) => {
     setExperiments(prev => prev.filter(exp => exp.id !== id));
+  };
+
+  // Редактирование поля Experiment (включая problem)
+  const handleEditExperimentField = (expId: string, field: keyof Experiment, value: any) => {
+    setExperiments(prev =>
+      prev.map(exp =>
+        exp.id === expId
+          ? { ...exp, [field]: value }
+          : exp
+      )
+    );
   };
 
   const handleEditExperimentParam = (expId: string, name: string, value: string) => {
@@ -132,7 +196,6 @@ const Home: React.FC = () => {
       )
     );
   };
-  
 
   const handleSubmitAll = async () => {
     if (experiments.length === 0) return;
@@ -141,6 +204,7 @@ const Home: React.FC = () => {
       const responses = await Promise.all(
         experiments.map(exp =>
           submitOptimization({
+            problem: exp.problem,
             dimension: exp.dimension,
             instance_id: exp.instance_id,
             algorithm: exp.algorithm,
@@ -166,6 +230,7 @@ const Home: React.FC = () => {
     setLoading(true);
     try {
       const forced = await submitOptimization({
+        problem: exp.problem,
         dimension: exp.dimension,
         instance_id: exp.instance_id,
         algorithm: exp.algorithm,
@@ -207,18 +272,49 @@ const Home: React.FC = () => {
       <div>
         <h2>{strings.home.problem_section}</h2>
         <div className="row g-3">
-          {(['dimension', 'instance_id'] as const).map(key => (
-            <div key={key} className="col-md-3">
-              <label className="form-label">{key}</label>
-              <input
-                className="form-control"
-                name={key}
-                type="number"
-                value={problem[key]}
-                onChange={handleProblemChange}
-              />
-            </div>
-          ))}
+        <div className="col-md-6">
+  <label className="form-label">{strings.home.problem_suite}</label>
+  <Select<
+  OptionType,      // тип одной опции
+  true,            // isMulti = true
+  ProblemGroup     // тип группы
+>
+  isMulti
+  options={problemOptions}
+  // value — берем все опции из групп и фильтруем по выбранным value
+  value={problemOptions
+    .flatMap(group => group.options)
+    .filter(opt => selectedProblems.includes(opt.value))
+  }
+  onChange={selected =>
+    setSelectedProblems((selected as OptionType[]).map(o => o.value))
+  }
+  closeMenuOnSelect={false}
+  placeholder={strings.home.select_problem_suite}
+  classNamePrefix="react-select"
+/>
+
+</div>
+          <div className="col-md-3">
+            <label className="form-label">{strings.home.dimension}</label>
+            <input
+              className="form-control"
+              name="dimension"
+              type="number"
+              value={problem.dimension}
+              onChange={handleProblemChange}
+            />
+          </div>
+          <div className="col-md-3">
+            <label className="form-label">{strings.home.instance_id}</label>
+            <input
+              className="form-control"
+              name="instance_id"
+              type="number"
+              value={problem.instance_id}
+              onChange={handleProblemChange}
+            />
+          </div>
         </div>
       </div>
 
@@ -274,10 +370,10 @@ const Home: React.FC = () => {
         <table className="table table-bordered">
           <thead>
             <tr>
-              <th>{strings.home.experiment_id}</th>
+              <th>{strings.home.problem}</th>
+              <th>{strings.home.algorithm}</th>
               <th>{strings.home.dimension}</th>
               <th>{strings.home.instance_id}</th>
-              <th>{strings.home.algorithm}</th>
               <th>{strings.home.seed}</th>
               <th>{strings.home.parameters}</th>
               <th>{strings.home.actions}</th>
@@ -286,25 +382,80 @@ const Home: React.FC = () => {
           <tbody>
             {experiments.map(exp => (
               <tr key={exp.id}>
-                <td>{exp.id}</td>
-                <td>{exp.dimension}</td>
-                <td>{exp.instance_id}</td>
-                <td>{exp.algorithmName}</td>
-                <td>{exp.seed}</td>
                 <td>
-                  {Object.entries(exp.params).map(([k, v]) => (
-                    <div key={k} className="mb-2">
-                      <label className="form-label">{k}</label>
-                      <input
-                        className="form-control form-control-sm"
-                        type={typeof v === 'number' ? 'number' : 'text'}
-                        name={k}
-                        value={v == null ? '' : v}
-                        onChange={e => handleEditExperimentParam(exp.id, k, e.target.value)}
-                      />
-                    </div>
-                  ))}
+                  <input
+                    className="form-control form-control-sm"
+                    value={exp.problem}
+                    onChange={e =>
+                      handleEditExperimentField(exp.id, 'problem', e.target.value)
+                    }
+                  />
                 </td>
+                <td>{exp.algorithmName}</td>
+                <td>
+                  <input
+                    className="form-control form-control-sm"
+                    type="number"
+                    value={exp.dimension}
+                    onChange={e =>
+                      handleEditExperimentField(
+                        exp.id,
+                        'dimension',
+                        Number(e.target.value)
+                      )
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    className="form-control form-control-sm"
+                    type="number"
+                    value={exp.instance_id}
+                    onChange={e =>
+                      handleEditExperimentField(
+                        exp.id,
+                        'instance_id',
+                        Number(e.target.value)
+                      )
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    className="form-control form-control-sm"
+                    type="number"
+                    value={exp.seed}
+                    onChange={e =>
+                      handleEditExperimentField(
+                        exp.id,
+                        'seed',
+                        Number(e.target.value)
+                      )
+                    }
+                  />
+                </td>
+
+                <td>
+                <table className="table table-borderless mb-0">
+                  <tbody>
+                    {Object.entries(exp.params).map(([k, v]) => (
+                      <tr key={k}>
+                        <td style={{ verticalAlign: 'middle', whiteSpace: 'nowrap' }}>{k}</td>
+                        <td>
+                          <input
+                            className="form-control form-control-sm"
+                            style={{ minWidth: '100px' }}
+                            type={typeof v === 'number' ? 'number' : 'text'}
+                            name={k}
+                            value={v == null ? '' : v}
+                            onChange={e => handleEditExperimentParam(exp.id, k, e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </td>
                 <td>
                   <button
                     className="btn btn-danger btn-sm"
@@ -317,7 +468,7 @@ const Home: React.FC = () => {
             ))}
             {experiments.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center text-muted">
+                <td colSpan={8} className="text-center text-muted">
                   {strings.home.no_experiments}
                 </td>
               </tr>
@@ -363,6 +514,7 @@ const Home: React.FC = () => {
                     <h6>{strings.home.cached_section}</h6>
                     {cached.map((r, i) => (
                       <div key={i} className="border rounded p-2 mb-2">
+                        <p><strong>{strings.home.problem}</strong> {r.experiment.problem}</p>
                         <p><strong>{r.experiment.algorithmName}</strong> {strings.home.already_cached}</p>
                         <p>{strings.home.best_f}: {r.data.matches[0].best_result['f[1]'].toFixed(6)}</p>
                         <div className="d-flex gap-2">
@@ -406,6 +558,7 @@ const Home: React.FC = () => {
                 {multiResults[cacheDetailIndex].data.matches.map((res: any) => (
                   <div key={res.result_id} className="border rounded p-2 mb-2">
                     <p><strong>{strings.home.cached_id}</strong> {res.result_id}</p>
+                    <p><strong>{strings.home.problem}</strong> {multiResults[cacheDetailIndex].experiment.problem}</p>
                     <p>
                       <strong>{res.algorithm_name} v{res.algorithm_version}</strong><br/>
                       {strings.home.expected_actual}{res.expected_budget} / {res.actual_budget}
@@ -416,6 +569,12 @@ const Home: React.FC = () => {
                         <li key={k}>{k}: {(v as number).toFixed(6)}</li>
                       )}
                     </ul>
+                   <button
+                      className="btn btn-primary btn-sm mt-2"
+                      onClick={() => navigate(`/results/${res.result_id}`)}
+                    >
+                      {strings.home.view}
+                    </button>
                   </div>
                 ))}
               </div>

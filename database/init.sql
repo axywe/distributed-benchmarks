@@ -22,6 +22,7 @@ CREATE TABLE optimization_results (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     result_id TEXT NOT NULL UNIQUE,
     method_id INTEGER NOT NULL REFERENCES optimization_methods(id) ON DELETE CASCADE,
+    problem TEXT NOT NULL,
     algorithm_name TEXT NOT NULL,
     algorithm_version TEXT NOT NULL,
     dimension INTEGER NOT NULL,
@@ -50,7 +51,7 @@ CREATE INDEX idx_input_param_name_num ON optimization_input_parameters(name, val
 INSERT INTO optimization_methods (name, parameters) VALUES (
   'algorithms.pso',
   '{
-    "n_iter": { "type": "int", "default": 10 },
+    "max_iterations": { "type": "int", "default": 10 },
     "n_particles": { "type": "int", "default": 15 },
     "inertia_start": { "type": "float", "default": 0.9 },
     "inertia_end": { "type": "float", "default": 0.4 },
@@ -60,12 +61,6 @@ INSERT INTO optimization_methods (name, parameters) VALUES (
     "tol_thres": { "type": "float", "default": null, "nullable": true },
     "tol_win": { "type": "int", "default": 5 }
   }'
-);
-
-
-INSERT INTO optimization_methods (name, parameters) VALUES (
-  'algorithms.test',
-  '{}'
 );
 
 -- INSERT INTO optimization_methods (name, parameters) VALUES (
