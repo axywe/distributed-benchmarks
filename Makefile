@@ -1,4 +1,4 @@
-.PHONY: build docker run clean db-up db-clean frontend
+.PHONY: build-image build docker run clean db-up db-clean frontend
 
 IMAGE_NAME = axywewastaken/boela:0.1
 CUSTOM_IMAGE_PREFIX = boela-custom
@@ -11,13 +11,25 @@ DB_DIR = database
 HOST_RESULTS_DIR = results
 DB_DOCKERFILE = $(DB_DIR)/Dockerfile
 
+# Собираем образ один раз
+build-image:
+	docker build \
+	  -f $(BENCH_DIR)/Dockerfile \
+	  -t $(CUSTOM_IMAGE_PREFIX):latest \
+	  .
+
+# Затем каждый раз просто ранним контейнер, передавая ARGS в команду
 docker:
 	@echo "Running container with arguments: $(ARGS)"
 	UNIQUE_TAG=$(shell date +%s%N) && \
 	CONTAINER_NAME=$(CONTAINER_NAME_PREFIX)-$$UNIQUE_TAG && \
-	docker build --build-arg ARGS="$(ARGS)" -f $(BENCH_DIR)/Dockerfile -t $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG . && \
-	docker run -d --name $$CONTAINER_NAME --label group=boela -v $(shell pwd)/$(HOST_RESULTS_DIR)/$$UNIQUE_TAG:/results $(CUSTOM_IMAGE_PREFIX):$$UNIQUE_TAG && \
-	echo "$$CONTAINER_NAME"
+	mkdir -p $(HOST_RESULTS_DIR)/$$UNIQUE_TAG && \
+	docker run -d \
+	  --name $$CONTAINER_NAME \
+	  --label group=boela \
+	  -v $(shell pwd)/$(HOST_RESULTS_DIR)/$$UNIQUE_TAG:/results \
+	  $(CUSTOM_IMAGE_PREFIX):latest $(ARGS) \
+	&& echo "$$CONTAINER_NAME"
 
 clean:
 	@echo "Stopping and removing all containers with prefix $(CONTAINER_NAME_PREFIX)..."

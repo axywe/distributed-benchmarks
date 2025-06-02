@@ -18,6 +18,7 @@ type OptimizationResult struct {
 	ActualBudget     int                    `json:"actual_budget"`
 	BestResult       map[string]float64     `json:"best_result"`
 	ResultID         string                 `json:"result_id"`
+	Problem          string                 `json:"problem"`
 }
 
 func InsertOptimizationResult(or OptimizationResult) error {
@@ -58,16 +59,26 @@ func InsertOptimizationResult(or OptimizationResult) error {
 		userIDParam = nil
 	}
 
+	rawProblem, ok := or.Parameters["problem"]
+	if !ok {
+		return fmt.Errorf("отсутствует параметр 'problem'")
+	}
+	problemStr, ok := rawProblem.(string)
+	if !ok {
+		return fmt.Errorf("параметр 'problem' должен быть строкой")
+	}
+
 	_, err = tx.Exec(`
 INSERT INTO optimization_results
-  (user_id, result_id, method_id, algorithm_name, algorithm_version,
+  (user_id, result_id, method_id, problem, algorithm_name, algorithm_version,
    dimension, instance_id, algorithm, seed,
    expected_budget, actual_budget, best_result_x, best_result_f)
-VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 `,
 		userIDParam,
 		or.ResultID,
 		methodID,
+		problemStr,
 		or.AlgorithmName,
 		or.AlgorithmVersion,
 		values["dimension"],
@@ -155,7 +166,7 @@ func GetOptimizationResults(limitStr, offsetStr string, userID int) ([]Optimizat
 	}
 
 	rows, err := DB.Query(`
-SELECT result_id, algorithm_name, algorithm_version,
+SELECT result_id, problem, algorithm_name, algorithm_version,
        expected_budget, actual_budget,
        best_result_x, best_result_f
 FROM optimization_results
@@ -176,6 +187,7 @@ LIMIT $2 OFFSET $3
 
 		if err := rows.Scan(
 			&or.ResultID,
+			&or.Problem,
 			&or.AlgorithmName,
 			&or.AlgorithmVersion,
 			&or.ExpectedBudget,

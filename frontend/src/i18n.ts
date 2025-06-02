@@ -13,7 +13,7 @@ const strings = {
         title: "Boela",
         home: "Home",
         history: "History",
-        dashboard: "Dashboard",
+        dashboard: "Admin panel",
         files: "Files",
         logout: "Logout",
         auth: "Auth",
@@ -21,7 +21,7 @@ const strings = {
     },
 
     search: {
-      title: "Search Algorithms",
+      title: "Search benchmark results",
       problem_section: "Problem definition",
       algorithm_section: "Algorithm configuration",
       experiments_section: "Experiments",
@@ -33,11 +33,22 @@ const strings = {
       best_f: "Best f",
       actions: "Actions",
       add: "Add",
+      adding: "Adding…",
+      added: "Added",
       no_results: "No results found",
-    },    
+      view_result: "View result",
+      problem: "Problem set",
+    },   
+    
+    footer: {
+      home: "Home",
+      search: "Search",
+      history: "History",
+      copyRight: "Copyright 2025",
+    },
   
     home: {
-      title: "Optimization Form",
+      title: "Benchmark settings",
       algorithm: "Algorithm",
       seed: "Seed",
       submit: "Run experiments",
@@ -72,6 +83,10 @@ const strings = {
       already_cached: "(cached)",
       best_f: "Best f",
       view_results: "View results",
+      problem: "Problem",
+      problem_suite: "Problem suite",
+      select_problem_suite: "Select one or several problems",
+      bbob: "Entire BBOB",
     },
     
   
