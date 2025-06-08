@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { OptimizationResult } from '../api';
 import strings from '../i18n';
 
@@ -15,6 +15,11 @@ const ResultDetails: React.FC = () => {
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
+  const location = useLocation();
+  const searchContext = location.state?.searchContext as {
+    algParams: Record<string, any>;
+    methodParameters: Record<string, any>;
+  } | undefined;
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -107,11 +112,57 @@ const ResultDetails: React.FC = () => {
             <div className="card-body">
               <h5 className="card-title">{strings.resultDetails.parameters}</h5>
               <ul className="list-group list-group-flush">
-                {Object.entries(result.parameters).map(([key, val]) => (
-                  <li key={key} className="list-group-item">
-                    <strong>{formatLabel(key)}:</strong> {String(val)}
-                  </li>
-                ))}
+                {searchContext && result ? (
+                  (() => {
+                    const allParamKeys = Array.from(new Set([
+                      ...Object.keys(searchContext.methodParameters || {}),
+                      ...Object.keys(result.parameters),
+                    ])).sort();
+
+                    return allParamKeys.map(key => {
+                      const resultValue = result.parameters[key];
+                      const searchParams = searchContext.algParams;
+                      const methodParams = searchContext.methodParameters;
+
+                      const wasInSearchInterface = key in (methodParams || {});
+                      const isMissingInResult = wasInSearchInterface && resultValue === undefined;
+
+                      let highlight = false;
+                      let note = null;
+
+                      if (wasInSearchInterface) {
+                        const searchValue = searchParams?.[key];
+                        const searchValEmpty = searchValue === null || searchValue === undefined || searchValue === '';
+
+                        if ((searchValEmpty && (resultValue !== undefined && resultValue !== null)) ||
+                            (!searchValEmpty && String(resultValue) !== String(searchValue))) {
+                          highlight = true;
+                          note = <span className="ms-2 fst-italic text-muted">(searched for: {searchValEmpty ? 'empty' : String(searchValue)})</span>;
+                        }
+                      }
+
+                      let liClassName = "list-group-item";
+                      if (highlight) {
+                        liClassName += " list-group-item-info";
+                      } else if (isMissingInResult) {
+                        liClassName += " bg-light text-muted";
+                      }
+
+                      return (
+                        <li key={key} className={liClassName}>
+                          <strong>{formatLabel(key)}:</strong> {String(resultValue ?? (isMissingInResult ? 'Not set' : 'N/A'))}
+                          {note}
+                        </li>
+                      );
+                    });
+                  })()
+                ) : (
+                  result && Object.entries(result.parameters).map(([key, val]) => (
+                    <li key={key} className="list-group-item">
+                      <strong>{formatLabel(key)}:</strong> {String(val)}
+                    </li>
+                  ))
+                )}
               </ul>
             </div>
           </div>

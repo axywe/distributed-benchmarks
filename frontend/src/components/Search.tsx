@@ -45,8 +45,6 @@ const SearchAlgorithms: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [addConfigStatus, setAddConfigStatus] = useState<'idle' | 'adding' | 'added'>('idle');
   const [loading, setLoading] = useState(false);
-  const [addStatus, setAddStatus] = useState<Record<string, 'idle'|'adding'|'added'>>({});
-  const timeouts = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const navigate = useNavigate();
   const [selectedProblem, setSelectedProblem] = useState('bbob');
 
@@ -82,6 +80,7 @@ const SearchAlgorithms: React.FC = () => {
       ...prev,
       [name]: value === '' ? null : Number(value),
     }));
+    setAddConfigStatus('idle');
   };
 
   const handleAlgorithmSelect = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -95,6 +94,7 @@ const SearchAlgorithms: React.FC = () => {
       ...prev,
       [name]: value === '' ? null : value,
     }));
+    setAddConfigStatus('idle');
   };
 
   const validateConfig = () => {
@@ -174,9 +174,6 @@ const SearchAlgorithms: React.FC = () => {
     localStorage.setItem('savedExperiments', JSON.stringify(arr));
 
     setAddConfigStatus('added');
-    setTimeout(() => {
-      setAddConfigStatus('idle');
-    }, 1000);
   };
 
   const handleSearch = async () => {
@@ -193,33 +190,6 @@ const SearchAlgorithms: React.FC = () => {
     const json = (await res.json()) as { success: boolean; data: SearchResult[] };
     setResults(json.success ? json.data : []);
     setLoading(false);
-  };
-
-  const handleAddResult = (r: SearchResult) => {
-    setAddStatus(s => ({ ...s, [r.result_id]: 'adding' }));
-    const p = { ...r.parameters };
-    const { dimension, instance_id, algorithm, seed, user_id, ...rest } = p;
-    const exp: Experiment = {
-      id: Date.now().toString(),
-      dimension: Number(dimension),
-      instance_id: Number(instance_id),
-      algorithm: Number(algorithm),
-      seed: Number(seed),
-      params: rest,
-      algorithmName: r.algorithm_name,
-    };
-    const saved = localStorage.getItem('savedExperiments');
-    const arr: Experiment[] = saved ? JSON.parse(saved) : [];
-    arr.push(exp);
-    localStorage.setItem('savedExperiments', JSON.stringify(arr));
-    setAddStatus(s => ({ ...s, [r.result_id]: 'added' }));
-    if (timeouts.current[r.result_id]) {
-      clearTimeout(timeouts.current[r.result_id]);
-    }
-    timeouts.current[r.result_id] = setTimeout(() => {
-      setAddStatus(s => ({ ...s, [r.result_id]: 'idle' }));
-      delete timeouts.current[r.result_id];
-    }, 1000);
   };
 
   return (
@@ -299,7 +269,7 @@ const SearchAlgorithms: React.FC = () => {
           <button
             className="btn btn-success ms-2"
             onClick={handleAddConfig}
-            disabled={addConfigStatus === 'adding'}
+            disabled={addConfigStatus === 'adding' || addConfigStatus === 'added'}
           >
             {addConfigStatus === 'adding'
               ? strings.search.adding
@@ -307,6 +277,7 @@ const SearchAlgorithms: React.FC = () => {
                 ? strings.search.added
                 : strings.search.add}
           </button>
+          {addConfigStatus === 'added' && <span className="ms-3 text-success">{strings.search.added_to_experiments}</span>}
         </div>
       </div>
 
@@ -327,20 +298,16 @@ const SearchAlgorithms: React.FC = () => {
                 <td>{r.best_result['f[1]'].toFixed(6)}</td>
                 <td>
                   <button
-                    className="btn btn-sm btn-success"
-                    style={{ minWidth: '6rem' }}
-                    onClick={() => handleAddResult(r)}
-                    disabled={addStatus[r.result_id] === 'adding'}
-                  >
-                    {addStatus[r.result_id] === 'adding'
-                      ? strings.search.adding
-                      : addStatus[r.result_id] === 'added'
-                        ? strings.search.added
-                        : strings.search.add}
-                  </button>
-                  <button
                     className="btn btn-sm btn-info ms-2"
-                    onClick={() => navigate(`/results/${r.result_id}`)}
+                    onClick={() => navigate(`/results/${r.result_id}`, {
+                      state: {
+                        searchContext: {
+                          problem,
+                          algParams,
+                          methodParameters: selectedMethod?.parameters,
+                        },
+                      },
+                    })}
                   >
                     {strings.search.view_result}
                   </button>

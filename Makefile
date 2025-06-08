@@ -11,14 +11,12 @@ DB_DIR = database
 HOST_RESULTS_DIR = results
 DB_DOCKERFILE = $(DB_DIR)/Dockerfile
 
-# Собираем образ один раз
 build-image:
 	docker build \
 	  -f $(BENCH_DIR)/Dockerfile \
 	  -t $(CUSTOM_IMAGE_PREFIX):latest \
 	  .
 
-# Затем каждый раз просто ранним контейнер, передавая ARGS в команду
 docker:
 	@echo "Running container with arguments: $(ARGS)"
 	UNIQUE_TAG=$(shell date +%s%N) && \
@@ -50,3 +48,6 @@ db:
 
 db-down:
 	docker-compose down
+
+all: db
+	@make run & make frontend
