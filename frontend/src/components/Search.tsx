@@ -258,26 +258,29 @@ const SearchAlgorithms: React.FC = () => {
             </div>
           ))}
         </div>
-        <div className="mt-3">
-          <button
-            className="btn btn-primary"
-            onClick={handleSearch}
-            disabled={loading}
-          >
-            {loading ? strings.search.searching : strings.search.search}
-          </button>
-          <button
-            className="btn btn-success ms-2"
-            onClick={handleAddConfig}
-            disabled={addConfigStatus === 'adding' || addConfigStatus === 'added'}
-          >
-            {addConfigStatus === 'adding'
-              ? strings.search.adding
-              : addConfigStatus === 'added'
-                ? strings.search.added
-                : strings.search.add}
-          </button>
-          {addConfigStatus === 'added' && <span className="ms-3 text-success">{strings.search.added_to_experiments}</span>}
+        <div className="mt-3 row g-2" style={{ maxWidth: '400px' }}>
+          <div className="col">
+            <button
+              className="btn btn-primary w-100"
+              onClick={handleSearch}
+              disabled={loading}
+            >
+              {loading ? strings.search.searching : strings.search.search}
+            </button>
+          </div>
+          <div className="col">
+            <button
+              className="btn btn-success w-100"
+              onClick={handleAddConfig}
+              disabled={addConfigStatus === 'adding' || addConfigStatus === 'added'}
+            >
+              {addConfigStatus === 'adding'
+                ? strings.search.adding
+                : addConfigStatus === 'added'
+                  ? strings.search.added_to_experiments
+                  : strings.search.add}
+            </button>
+          </div>
         </div>
       </div>
 
