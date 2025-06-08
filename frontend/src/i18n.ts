@@ -38,6 +38,7 @@ const strings = {
       no_results: "No results found",
       view_result: "View result",
       problem: "Problem set",
+      added_to_experiments: "Added to experiments",
     },   
     
     footer: {
