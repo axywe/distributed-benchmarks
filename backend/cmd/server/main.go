@@ -10,12 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/axywe/distributed-benchmarks/internal/db"
+	"github.com/axywe/distributed-benchmarks/internal/router"
+	"github.com/axywe/distributed-benchmarks/sessions"
 	"github.com/gorilla/handlers"
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/db"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/router"
-	"gitlab.com/Taleh/distributed-benchmarks/sessions"
 )
 
 var RedisClient *redis.Client

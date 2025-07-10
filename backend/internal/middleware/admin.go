@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/Taleh/distributed-benchmarks/internal/db"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/helpers"
-	"gitlab.com/Taleh/distributed-benchmarks/sessions"
+	"github.com/axywe/distributed-benchmarks/internal/db"
+	"github.com/axywe/distributed-benchmarks/internal/helpers"
+	"github.com/axywe/distributed-benchmarks/sessions"
 )
 
 func AdminMiddleware(next http.Handler) http.Handler {

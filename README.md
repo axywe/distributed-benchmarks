@@ -30,7 +30,7 @@
 1. **Clone the repository**:
 
    ```bash
-   git clone https://gitlab.com/Taleh/distributed-benchmarks.git
+   git clone https://github.com/axywe/distributed-benchmarks.git
    cd boela
    ```
 

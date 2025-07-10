@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/Taleh/distributed-benchmarks/internal/helpers"
-	"gitlab.com/Taleh/distributed-benchmarks/sessions"
+	"github.com/axywe/distributed-benchmarks/internal/helpers"
+	"github.com/axywe/distributed-benchmarks/sessions"
 )
 
 func AuthMiddleware(next http.Handler) http.Handler {

@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/axywe/distributed-benchmarks/internal/db"
+	"github.com/axywe/distributed-benchmarks/internal/helpers"
 	"github.com/gorilla/mux"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/db"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/helpers"
 )
 
 const insertPrefix = "custom."

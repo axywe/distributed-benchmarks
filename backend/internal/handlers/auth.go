@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/axywe/distributed-benchmarks/internal/db"
+	"github.com/axywe/distributed-benchmarks/internal/helpers"
+	"github.com/axywe/distributed-benchmarks/sessions"
 	"github.com/google/uuid"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/db"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/helpers"
-	"gitlab.com/Taleh/distributed-benchmarks/sessions"
 )
 
 type loginRequest struct {

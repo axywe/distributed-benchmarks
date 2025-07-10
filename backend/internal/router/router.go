@@ -3,9 +3,9 @@ package router
 import (
 	"net/http"
 
+	"github.com/axywe/distributed-benchmarks/internal/handlers"
+	"github.com/axywe/distributed-benchmarks/internal/middleware"
 	"github.com/gorilla/mux"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/handlers"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/middleware"
 )
 
 func NewRouter() *mux.Router {

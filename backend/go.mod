@@ -1,4 +1,4 @@
-module gitlab.com/Taleh/distributed-benchmarks
+module github.com/axywe/distributed-benchmarks
 
 go 1.23
 

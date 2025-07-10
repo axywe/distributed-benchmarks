@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/axywe/distributed-benchmarks/internal/helpers"
 	"github.com/gorilla/mux"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/helpers"
 )
 
 const basePath = "bench/custom"

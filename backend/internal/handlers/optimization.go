@@ -14,11 +14,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/axywe/distributed-benchmarks/internal/db"
+	"github.com/axywe/distributed-benchmarks/internal/helpers"
+	"github.com/axywe/distributed-benchmarks/internal/utils"
+	"github.com/axywe/distributed-benchmarks/sessions"
 	"github.com/gorilla/mux"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/db"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/helpers"
-	"gitlab.com/Taleh/distributed-benchmarks/internal/utils"
-	"gitlab.com/Taleh/distributed-benchmarks/sessions"
 )
 
 type OptimizationRequest struct {
